@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="h2" >
+    <select id="getValueFromDatabase" resultType="String">
+        SELECT NAME
+        FROM USER
+        WHERE ID = 'aaa'
+    </select>
+
+    <select id="getHsTypeMaxIdx" resultType="Integer">
+        SELECT  NVL(MAX(IDX), 0)
+        FROM    HS_TYPE
+    </select>
+
+</mapper>

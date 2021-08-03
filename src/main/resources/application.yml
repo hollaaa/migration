@@ -1,0 +1,55 @@
+server:
+  port: 80
+spring:
+  h2:
+    console:
+      enabled: true
+  datasource1:
+#    hikari:
+    driver-class-name: org.h2.Driver
+    jdbc-url: jdbc:h2:mem:testdb
+#    jdbc-url: jdbc:h2:file:C:/hs/h2
+    username: sa
+    password:
+  datasource2:
+#    hikari:
+#    driver-class-name: oracle.jdbc.driver.OracleDriver
+#    jdbc-url: jdbc:oracle:thin:@127.0.0.1:1521:xe
+#    username: SYS as sysdba
+#    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/example?serverTimezone=UTC&characterEncoding=UTF-8
+    username: admin
+    password: nimda
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+    hibernate:
+      ddl-auto: update #update #create-drop
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+#        globally_quoted_identifiers: true
+#mybatis:
+#  mapper-location: classpath:mapper/**/*.xml
+#  configuration:
+#    lazyLoadingEnabled=true
+#    aggressiveLazyLoading=false
+#    mapUnderscoreToCamelCase=true
+
+#logging:
+#  level:
+#    org.hibernate.type.descriptor.sql: trace
+
+# Mybatis
+#  mybatis:
+#    # mapper.xml 위치 지정
+#    mapper-locations:
+#    - mybatis-mapper/**/*.xml
+#    # model 프로퍼티 camel case 설정
+#    configuration:
+#      map-underscore-to-camel-case: true
+#    # 패키지명 생략할 수 있도록 alias 설정
+#    type-aliases-package: com.hansum.migration

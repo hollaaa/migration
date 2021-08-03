@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mysql" >
+
+    <select id="getTableInfos" resultType="Map">
+        SELECT  A.TABLE_NAME TAB_NAME
+        , (SELECT C.COMMENTS FROM DBA_TAB_COMMENTS C WHERE A.OWNER = c.owner AND A.TABLE_NAME = c.table_name) AS TAB_COMMENT
+        , b.column_id AS COL_ID
+        , b.column_name AS COL_NAME
+        , (SELECT D.COMMENTS FROM dba_col_comments D WHERE A.OWNER = D.OWNER AND A.TABLE_NAME = D.TABLE_NAME AND B.COLUMN_NAME = D.COLUMN_NAME) COL_COMMENT
+        , B.DATA_TYPE
+        , CASE
+        WHEN B.DATA_TYPE IN ('VARCHAR', 'VARCHAR2', 'CHAR') THEN TO_CHAR(B.DATA_LENGTH)
+        WHEN B.DATA_TYPE = 'NUMBER' THEN B.DATA_PRECISION || ',' || DECODE(B.DATA_SCALE, 0, '0', B.DATA_SCALE)
+        ELSE ''
+        END DATA_LEN
+        , B.NULLABLE
+        FROM    DBA_TABLES A
+        JOIN    dba_tab_columns B ON A.OWNER = b.owner
+        AND     A.TABLE_NAME = B.TABLE_NAME
+        WHERE   A.OWNER = 'HYBRIS'
+        ORDER BY A.TABLE_NAME, b.column_name
+
+        SELECT  TABLE_NAME TAB_NAME
+                , '' TAB_COMMENT
+                , ORDINAL_POSITION COL_ID
+                , COLUMN_NAME COL_NAME
+                , '' COL_COMMENT
+                , DATA_TYPE DATA_TYPE
+                , COLUMN_TYPE COL_TYPE
+                , IS_NULLABLE NULLABLE
+                , COLUMN_KEY COL_KEY
+        FROM 	information_schema.COLUMNS COL
+        WHERE 	col.table_schema = 'handsome'
+        ORDER BY COL.TABLE_NAME, COL.COLUMN_NAME
+    </select>
+
+</mapper>

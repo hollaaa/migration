@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Hybris Mig</title>
+<!--    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>-->
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-json/2.6.0/jquery.json.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        function getvalue1(){
+            $.ajax({
+            type: "POST",
+            url: "/valueTest",
+            success: (data) => {
+                console.log(data);
+                $('#contents').html(data);
+            }
+            });
+        }
+
+        function getvalue2(){
+            $.ajax({
+            type: "POST",
+            url: "/readItem",
+            success: (data) => {
+                console.log(data);
+                $('#contents').html(data);
+            }
+            });
+        }
+
+        function create(){
+
+            var user = new Object();
+            user.id = "aaa";
+            user.name = "이순신";
+            user.age = 30;
+
+            // Object to JSON
+            var userJson = $.toJSON(user);
+<!--            alert(userJson);-->
+            console.log('json=' + userJson);
+
+            // JSON to Object
+            var userObj = $.evalJSON(userJson);
+
+
+            $.ajax({
+                type: "POST",
+                data: userJson,
+                contentType: "application/json; charset=UTF-8",
+                url: "/user/create",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
+        function createOrgTables(){
+            $.ajax({
+                type: "POST",
+                url: "/createOrgTables",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
+        function saveCollectionTypes(){
+            $.ajax({
+                type: "POST",
+                url: "/saveCollectionTypes",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
+        function saveEnumTypes(){
+            $.ajax({
+                type: "POST",
+                url: "/saveEnumTypes",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
+        function getItemJson(){
+            alert("111");
+           location.href = "/getItemJsonObject";
+
+        }
+
+    </script>
+</head>
+<body>
+    <h2>Hybris Mig</h2>
+    <br/><br/>
+    <input type="button" value="Org 테이블 정보 저장" onclick="createOrgTables()"/>
+    <input type="button" value="Items Json" onclick="getItemJson()"/>
+    <input type="button" value="Collection타입 DB입력" onclick="saveCollectionTypes()"/>
+    <input type="button" value="Enum타입 DB입력" onclick="saveEnumTypes()"/>
+    <input type="button" value="selectOne" onclick="selectOne()"/>
+    <br/>
+    <a href="/getCollectionTypesMap" target="_blank">Collection타입</a>
+    <a href="/getEnumTypesMap" target="_blank">Enum타입</a>
+    <a href="/getRelationTypesMap" target="_blank">Relation타입</a>
+    <a href="/getItemTypesMap" target="_blank">Item타입</a>
+    <div id="contents"></div>
+</body>
+</html>

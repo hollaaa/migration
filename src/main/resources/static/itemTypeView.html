@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Hybris Mig</title>
+    <link href="./css/pub.all.min.css" rel="stylesheet">
+
+<!--    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>-->
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-json/2.6.0/jquery.json.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+    <!-- excel 처리 -->
+    <script src="./plugins/excel/exceljs.js"></script>
+    <script src="./plugins/filesaver/FileSaver.min.js"></script>
+
+    <!-- context menu -->
+
+    <script src="./js/pub.ep.js"></script>
+    <script src="./js/pub.context.js"></script>
+    <script src="./js/pub.grid.js"></script>
+    <script src="./js/fuse/fuse.min.js"></script>
+
+    <script>
+        var itemJson;
+        function getvalue(){
+
+            $.ajax({
+                type: "POST",
+                url: "/printJson",
+                success: (data) => {
+<!--                    console.log(data);-->
+                    console.log("값 입력");
+                    print(data)
+                }
+            });
+            console.log("22222222222222");
+            console.log(itemJson);
+            return itemJson;
+        }
+
+
+        function print(data) {
+            itemJson = data;
+            console.log("----print-----");
+            console.log(itemJson);
+            console.log("------ print end -----");
+        }
+    </script>
+
+    <style>
+    html, body{
+      height:100%;
+      width:100%;
+      margin:0px;
+      padding:0px;
+    }
+    .tbl{
+      width:100%;
+      height:90%;
+      border:1px solid #eee;
+    }
+
+    .tbl td{
+      border:1px solid #eee;
+      vertical-align:top;
+    }
+    .halfPer{
+        float:left;
+    }
+    .half-parent .halfPer:nth-child(1){
+        width:60%;
+    }
+
+    .half-parent .halfPer:nth-child(2){
+        width:40%;
+    }
+    .attr-area1{
+        background-color:#e6f8ff;
+    }
+
+    .attr-area2{
+        background-color:#e6ffeb;
+    }
+
+    .s-t-ul{
+        list-style: none;
+        padding: 0px;
+        margin: 0px;
+    }
+
+    .s-t-ul >li{
+        float:left;
+        width:50%;
+    }
+    </style>
+
+</head>
+<body>
+<table class="tbl">
+    <colgroup>
+        <col style="width:40%">
+        <col style="width:1%">
+        <col style="width:59%">
+    </colgroup>
+    <tr>
+        <td colspan="3">
+			<span>
+				<select id="itemTypeFile">
+
+				</select>
+			</span>
+            검색어 : <input type="text" id="searchVal">
+            <button type="button" class="btn-sch">검색</button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div>item type (total: <span id="itemTypeGridCnt"></span>)
+                (max attr: <span id="maxAttrCnt"></span>)
+                (max index: <span id="maxIndexCnt"></span>)
+                상세보기 여부 <input type="checkbox" id="itemTypeDetailFlag" checked="true">
+            </div>
+            <div id="itemTypeGrid" style="width:100%;height:320px;"></div>
+        </td>
+        <td></td>
+        <td rowspan="2">
+            <div class="attr-area1">
+                <div><input type="text" id="selectFileName" width="0"> item attr (<span id="itemAttrGridCnt"></span>)
+                    extends : <span id="extendsPathInfo" style="color:blue;"></span>
+                </div>
+
+                <div class="half-parent">
+                    <div>
+                        <div>attr</div>
+                        <div id="itemAttrGrid" style="width:100%;height:400px;"></div>
+                    </div>
+<!--                    <div class="halfPer">-->
+<!--                        <div>extends attr</div>-->
+<!--                        <div id="itemExtendsAttrGrid" style="width:100%;height:400px;"></div>-->
+<!--                    </div>-->
+                </div>
+                <div style="clear:both;"></div>
+                <div>item index (<span id="itemIndexGridCnt"></span>)</div>
+                <div id="itemIndexGrid" style="width:100%;height:170px;"></div>
+            </div>
+<!-- CSH
+            <div class="attr-area2">
+                <div><input type="text" id="selectFileName2"> item attr (<span id="itemAttrGridCnt2"></span>)
+                    extends : <span id="extendsPathInfo2" style="color:blue;"></span>
+                </div>
+
+                <div class="half-parent">
+                    <div class="halfPer">
+                        <div id="itemAttrGrid2" style="width:100%;height:160px;"></div>
+                    </div>
+                    <div class="halfPer">
+                        <div id="itemExtendsAttrGrid2" style="width:100%;height:160px;"></div>
+                    </div>
+                </div>
+                <div style="clear:both;"></div>
+                <div>item index (<span id="itemIndexGridCnt"></span>)</div>
+                <div id="itemIndexGrid2" style="width:100%;height:70px;"></div>
+            </div>
+-->
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <div>relations (<span id="relationsGridCnt"></span>)</div>
+            <div>
+                <div id="relationsGrid" style="width:50%;height:205px; float:left;"></div>
+                <div id="sourceTargetId" style="width:50%;height:205px;float:left;"></div>
+            </div>
+            <div style="clear:both;"></div>
+        </td>
+        <td></td>
+        <td style="background-color:#e6f8ff;">
+
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div>enumtypes (<span id="enumtypesGridCnt"></span>)</div>
+            <table style="width:100%;">
+                <col style="width:70%">
+                <col style="width:30%">
+                <tr>
+                    <td>
+                        <div id="enumtypesGrid" style="width:100%;height:215px;"></div>
+                    </td>
+                    <td>
+                        <div id="enumtypesValue"></div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td></td>
+        <td>
+            <div>collectiontypes (<span id="collectiontypesGridCnt"></span>)</div>
+            <div id="collectiontypesGrid" style="width:100%;height:100px;"></div>
+            <div>maptypes (<span id="maptypesGridCnt"></span>)</div>
+            <div id="maptypesGrid" style="width:100%;height:100px;"></div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+
+<script>
+
+(function (){
+    $.ajax({
+        type: "POST",
+        url: "/printJson",
+        success: (data) => {
+            viewItemType(data)
+        }
+    });
+})();
+
+function viewItemType(allItemsInfo)
+{
+
+    var g_searchVal = '';
+    var g_allItemTypeMap = {};
+    var g_allFilenameItemTypeMap = {};
+
+    function searchFilter (obj){
+        var val = obj.value+'';
+        val = (val+'') ==='undefined'?'': val;
+        if(g_searchVal==''){
+            return val;
+        }
+
+        var tmpSearchVal = g_searchVal.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        var re = new RegExp("(" + tmpSearchVal.split(' ').join('|') + ")", "gi");
+
+        return val.replace(re, '<b style="background: #f9f976;">$1</b>');
+    }
+
+    // 초기 데이터 만들기.
+    var strHtm = [];
+    var g_firstItemKey = ''
+        ,g_unselectItemKey = '';
+    for(var key in allItemsInfo){
+        if(g_firstItemKey==''){
+            g_firstItemKey = key;
+        }else{
+            g_unselectItemKey =key;
+        }
+        strHtm.push('<option value="'+key+'">'+key+'</option>');
+
+        var fileItemInfo = allItemsInfo[key];
+        var itemTypeList = fileItemInfo.itemtypes;
+        var allItemTypeAttrList = [],allItemTypeIndexList=[];
+        var colMaxVal =0 , indexMaxVal =0;
+
+        for(var i =0, len=itemTypeList.length; i < len; i++){
+            var item = itemTypeList[i];
+
+            g_allFilenameItemTypeMap[key+'_'+item.code] = item;
+
+            if(PubEP.isUndefined(g_allItemTypeMap[item.code])){
+                var aaa = [];
+                aaa.push(item);
+                g_allItemTypeMap[item.code] = aaa;
+            }else{
+                g_allItemTypeMap[item.code].push(item);
+            }
+
+<!--            colMaxVal = Math.max(colMaxVal,item.colList.length);-->
+<!--            indexMaxVal = Math.max(indexMaxVal,item.indexList.length);-->
+
+            allItemTypeAttrList = allItemTypeAttrList.concat(item.colList);
+            allItemTypeIndexList = allItemTypeIndexList.concat(item.indexList);
+        }
+
+        fileItemInfo['ap_itemattr'] = allItemTypeAttrList;
+        fileItemInfo['ap_itemindex'] = allItemTypeIndexList;
+        fileItemInfo['ap_colMaxVal'] = colMaxVal;
+        fileItemInfo['ap_indexMaxVal'] = indexMaxVal;
+    }
+
+    $('#itemTypeFile').html(strHtm.join(''));
+    var selItemTypeInfo = allItemsInfo[g_firstItemKey];
+
+    function getExtendsInfo(info, path, attrArr){
+        var val = info.extends;
+
+        if(val =='' || PubEP.isUndefined(val)){
+            return {
+                path : path
+                ,attrArr : attrArr
+            };
+        }else{
+            var extendsInfo = g_allItemTypeMap[val];
+
+            if(PubEP.isUndefined(extendsInfo)){
+                return {
+                    path : path + ' > ' + val
+                    ,attrArr : attrArr
+                }
+            } else {
+
+                var tmpExtendsInfo= {};
+                for(var i =0;i <extendsInfo.length;i++){
+                    var item =extendsInfo[i];
+
+                    attrArr = attrArr.concat(item.colList);
+
+                    if(item.extends){
+                        tmpExtendsInfo = item;
+                    }
+                }
+
+                return getExtendsInfo(tmpExtendsInfo ,path + ' > ' + val, attrArr);
+            }
+        }
+    }
+
+    var itemTypeView = {
+        searchObj : {}
+        ,currentKeyVal : g_firstItemKey
+        ,init : function (){
+            this.initEvt();
+            this.itemTypeGrid();
+            this.collectionEnumTypeGrid();
+            this.relationMaptypeTypeGrid();
+            this.initData();
+        }
+        // 초기 이벤트 처리.
+        ,initEvt : function (){
+            var _this =this;
+
+            $('#searchVal').on('keyup', function (e){
+                var val = $(this).val();
+
+                if (e.keyCode == 13){
+                    _this.searchResult(val);
+                } else{
+                    if(val.length > 2){
+                        _this.searchResult(val);
+                    }
+                }
+            });
+
+            $('.btn-sch').on('click', function (e){
+                var val = $('#searchVal').val();
+                _this.searchResult(val);
+            });
+
+            $('#itemTypeFile').data('preVal', $('#itemTypeFile').val());
+            $('#itemTypeFile').on('change', function (e){
+                var selVal = $(this).val();
+
+                _this.currentKeyVal = selVal;
+                g_unselectItemKey = $(this).data('preVal');
+
+                selItemTypeInfo = allItemsInfo[selVal];
+
+                $('#itemTypeFile').data('preVal', selVal);
+
+                _this.initData();
+            })
+        }
+        // 초기 데이터 셋팅
+        , initData : function (){
+            var itemTypeList = selItemTypeInfo.itemtypes;
+
+            $('#maxAttrCnt').html(selItemTypeInfo.ap_colMaxVal);
+            $('#maxIndexCnt').html(selItemTypeInfo.ap_indexMaxVal);
+
+            this.initSearch();
+            this.searchResult(g_searchVal)
+        }
+        // 검색 설정.
+        ,initSearch : function (){
+            var options = {
+                shouldSort :true
+                ,threshold : 0.2
+                ,location : 0
+                ,distance :300
+                ,maxPatternLength : 32
+                ,minMatchCharLength : 2
+            }
+
+            this.searchObj['itemTypeGrid'] = new Fuse(selItemTypeInfo.itemtypes||[] ,PubEP.util.objectMerge({},options,{keys :["code","description","extends"]}));
+            this.searchObj['itemAttrGrid'] = new Fuse(selItemTypeInfo.ap_itemattr||[] ,PubEP.util.objectMerge({},options,{keys :["qualifier","type","description"]}));
+            this.searchObj['itemIndexGrid'] = new Fuse(selItemTypeInfo.ap_itemindex||[] ,PubEP.util.objectMerge({},options,{keys :["code","description","extends"]}));
+
+            this.searchObj['collectiontypesGrid'] = new Fuse(selItemTypeInfo.collectiontypes||[] ,PubEP.util.objectMerge({},options,{keys :["code","elementtype","description"]}));
+            this.searchObj['enumtypesGrid'] = new Fuse(selItemTypeInfo.enumtypes||[] ,PubEP.util.objectMerge({},options,{keys :["code","description"]}));
+            this.searchObj['relationsGrid'] = new Fuse(selItemTypeInfo.relations||[] ,PubEP.util.objectMerge({},options,{keys :["code","deployment","description","sourceElement","targetElement"]}));
+            this.searchObj['maptypesGrid'] = new Fuse(selItemTypeInfo.maptypes ||[],PubEP.util.objectMerge({},options,{keys :["code","description"]}));
+        }
+        // 검색 결과  그리기
+        ,searchResult : function (val, type){
+            val = $.trim(val);
+
+            if(PubEP.isUndefined(type)){
+                g_searchVal = val;
+            }
+
+            var itemTypeGridResult,collectiontypesGridResult,enumtypesGridResult,relationsGridResult,maptypesGridResult
+                ,itemAttrGridResult,itemIndexGridResult,schResult7,schResult8,schResult9;
+            if(val ==''){
+                itemTypeGridResult = this.searchObj['itemTypeGrid'].list;
+                itemAttrGridResult = this.searchObj['itemAttrGrid'].list;
+                itemIndexGridResult = this.searchObj['itemIndexGrid'].list;
+
+                collectiontypesGridResult = this.searchObj['collectiontypesGrid'].list;
+                enumtypesGridResult = this.searchObj['enumtypesGrid'].list;
+                relationsGridResult = this.searchObj['relationsGrid'].list;
+                maptypesGridResult = this.searchObj['maptypesGrid'].list;
+
+            }else{
+                if(type =='relationsGrid' || PubEP.isUndefined(type)){
+                    relationsGridResult = this.searchObj['relationsGrid'].search(val);
+                }
+
+                if(PubEP.isUndefined(type)){
+                    itemTypeGridResult = this.searchObj['itemTypeGrid'].search(val);
+                    itemAttrGridResult = this.searchObj['itemAttrGrid'].search(val);
+                    itemIndexGridResult = this.searchObj['itemIndexGrid'].search(val);
+
+                    collectiontypesGridResult = this.searchObj['collectiontypesGrid'].search(val);
+                    enumtypesGridResult = this.searchObj['enumtypesGrid'].search(val);
+                    maptypesGridResult = this.searchObj['maptypesGrid'].search(val);
+                }
+            }
+
+            if(type =='relationsGrid' || PubEP.isUndefined(type)){
+                $('#relationsGridCnt').html(relationsGridResult.length);
+                $.pubGrid('#relationsGrid').setData(relationsGridResult, 'reDraw');
+            }
+
+            if(PubEP.isUndefined(type)){
+                $('#itemTypeGridCnt').html(itemTypeGridResult.length);
+                $.pubGrid('#itemTypeGrid').setData(itemTypeGridResult, 'reDraw');
+
+                $('#itemAttrGridCnt').html(itemAttrGridResult.length);
+                $.pubGrid('#itemAttrGrid').setData(itemAttrGridResult, 'reDraw');
+
+                $('#itemIndexGridCnt').html(itemIndexGridResult.length);
+                $.pubGrid('#itemIndexGrid').setData(itemIndexGridResult, 'reDraw');
+
+                $('#collectiontypesGridCnt').html(collectiontypesGridResult.length);
+                $.pubGrid('#collectiontypesGrid').setData(collectiontypesGridResult, 'reDraw');
+
+                $('#enumtypesGridCnt').html(enumtypesGridResult.length);
+                $.pubGrid('#enumtypesGrid').setData(enumtypesGridResult, 'reDraw');
+
+                $('#maptypesGridCnt').html(maptypesGridResult.length);
+                $.pubGrid('#maptypesGrid').setData(maptypesGridResult , 'reDraw');
+            }
+        }
+        // item type 그리기
+        ,itemTypeGrid : function (){
+            var _this =this;
+
+            $.pubGrid('#itemTypeGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,viewAllLabel : true
+                ,widthFixed : false
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,valueFilter : searchFilter
+                ,tColItem : [
+                  {key :'code',render:'html', label:'code',width:190}
+                  ,{key :'colLen',render:'html', label:'col length',type:'number',width:30, formatter: function (obj){
+<!--                        CSH-->
+                        if (obj.item.attributes == null) {
+                            return 0;
+                        }
+
+                        if ( $.isArray(obj.item.attributes.attribute)) {
+                            return obj.item.attributes.attribute.length;
+                        } else {
+                            return 1;
+                        }
+<!--                    return (obj.item.attributes['attribute']||[]).length;-->
+                  }}
+                  ,{key :'indexLen',render:'html', label:'index len',type:'number', width:30, formatter: function (obj){
+                        if (obj.item.indexes == null) {
+                            return 0;
+                        }
+
+                        if ( $.isArray(obj.item.indexes.index)) {
+                            return obj.item.indexes.index.length;
+                        } else {
+                            return 1;
+                        }
+<!--                    return (obj.item['indexList']||[]).length;-->
+                  }}
+<!--                  ,{key :'typeName',render:'html', label:'typeName',width:100}-->
+                  ,{key :'extends',render:'html', label:'extends',width:100}
+                  ,{key :'jaloclass',render:'html', label:'jaloclass',width:100}
+                  ,{key :'description',render:'html', label:'description',width:100}
+                ]
+                ,tbodyItem : selItemTypeInfo.itemtypes
+                ,rowOptions :{
+                    click : function (itemInfo){
+                        if($('#itemTypeDetailFlag').is(':checked') ===false){
+                            return ;
+                        }
+                        if(!$('.half-parent').hasClass('on')){
+                            $('.half-parent').addClass('on');
+                            $.pubGrid('#itemAttrGrid').resizeDraw();
+<!--                            $.pubGrid('#itemExtendsAttrGrid').resizeDraw()-->
+                        }
+
+                        var rowItem = itemInfo.item;
+
+                        var extendsInfo = getExtendsInfo(rowItem, rowItem.code, []);
+
+                        $('#extendsPathInfo').empty().html(extendsInfo.path);
+                        // CSH
+<!--                        $('#itemAttrGridCnt').html(rowItem.colList.length);-->
+                        if (rowItem.attributes != null && rowItem.attributes.attribute != null ) {
+                            if ($.isArray(rowItem.attributes.attribute)) {
+                                $('#itemAttrGridCnt').html(rowItem.attributes.attribute.length);
+                                $.pubGrid('#itemAttrGrid').setData(rowItem.attributes.attribute);
+                            } else {
+                                $('#itemAttrGridCnt').html(1);
+                                $.pubGrid('#itemAttrGrid').setData([rowItem.attributes.attribute]);
+                            }
+                        } else {
+                            $('#itemAttrGridCnt').html(0);
+                            $.pubGrid('#itemAttrGrid').setData([]);
+                        }
+                        // CSH
+<!--                        $('#itemIndexGridCnt').html(rowItem.indexList.length);-->
+                        if (rowItem.indexes != null && rowItem.indexes.index != null ) {
+                            if ($.isArray(rowItem.indexes.index)) {
+                                $('#itemIndexGridCnt').html(rowItem.indexes.index.length);
+                                $.pubGrid('#itemIndexGrid').setData(rowItem.indexes.index);
+                            } else {
+                                $('#itemIndexGridCnt').html(1);
+                                $.pubGrid('#itemIndexGrid').setData([rowItem.indexes.index]);
+                            }
+
+                        } else {
+                            $('#itemIndexGridCnt').html(0);
+                            $.pubGrid('#itemIndexGrid').setData([]);
+                        }
+
+<!--                        $.pubGrid('#itemExtendsAttrGrid').setData(extendsInfo.attrArr);-->
+                        _this.searchResult(rowItem.code, 'relationsGrid');
+
+                        var unselectItem = g_allFilenameItemTypeMap[g_unselectItemKey+'_'+rowItem.code];
+
+                        $('#selectFileName').val(_this.currentKeyVal);
+<!--                        $('#selectFileName2').val(g_unselectItemKey);-->
+
+<!--                        if(unselectItem){-->
+<!--                            var extendsInfo = getExtendsInfo(unselectItem, unselectItem.code, []);-->
+
+<!--                            $('#extendsPathInfo2').empty().html(extendsInfo.path);-->
+<!--                            $('#itemAttrGridCnt2').html(unselectItem.colList.length);-->
+<!--                            $('#itemIndexGridCnt2').html(unselectItem.indexList.length);-->
+
+<!--                            $.pubGrid('#itemAttrGrid2').setData(unselectItem.colList);-->
+<!--                            $.pubGrid('#itemExtendsAttrGrid2').setData(extendsInfo.attrArr);-->
+<!--                            $.pubGrid('#itemIndexGrid2').setData(unselectItem.indexList);-->
+<!--                        }else{-->
+<!--                            $('#extendsPathInfo2').empty().html('');-->
+<!--                            $('#itemAttrGridCnt2').html(0);-->
+<!--                            $('#itemIndexGridCnt2').html(0);-->
+
+<!--                            $.pubGrid('#itemAttrGrid2').setData([]);-->
+<!--                            $.pubGrid('#itemExtendsAttrGrid2').setData([], 'reDraw');-->
+<!--                            $.pubGrid('#itemIndexGrid2').setData([]);-->
+<!--                        }-->
+
+                    }
+                }
+            });
+
+            var itemAttrInfo = [
+              {key :'qualifier',render:'html', label:'qualifier',width:100}
+<!--              ,{key :'itemTypeCode',render:'html', label:'itemType',width:100}-->
+              ,{key :'description',render:'html', label:'description',width:100}
+              ,{key :'defaultvalue',render:'html', label:'defaultvalue',width:100}
+              ,{key :'type',render:'html', label:'type',width:100}
+              ,{key :'autocreate',render:'html', label:'autocreate',width:50}
+              ,{key :'generate',render:'html', label:'generate',width:50}
+              ,{key :'metatype',render:'html', label:'metatype',width:100}
+              ,{key :'redeclare',render:'html', label:'redeclare',width:100}
+              ,{key :'isSelectionOf',render:'html', label:'isSelectionOf',width:100}
+            ];
+
+            var itemAttrExtendsInfo = [
+              {key :'qualifier',render:'html', label:'qualifier',width:100}
+              ,{key :'fileName',render:'html', label:'fileName',width:100}
+              ,{key :'itemTypeCode',render:'html', label:'itemType',width:100}
+              ,{key :'description',render:'html', label:'description',width:100}
+              ,{key :'defaultvalue',render:'html', label:'defaultvalue',width:100}
+              ,{key :'type',render:'html', label:'type',width:100}
+              ,{key :'autocreate',render:'html', label:'autocreate',width:50}
+              ,{key :'generate',render:'html', label:'generate',width:50}
+              ,{key :'metatype',render:'html', label:'metatype',width:100}
+              ,{key :'redeclare',render:'html', label:'redeclare',width:100}
+              ,{key :'isSelectionOf',render:'html', label:'isSelectionOf',width:100}
+            ];
+
+            // index 정보
+            var itemIndexColInfo = [
+<!--              {key :'itemTypeCode',render:'html', label:'itemType',width:100}-->
+              {key :'name',render:'html', label:'name',width:100}
+              ,{key :'keys',render:'html', label:'index Keys',width:500, formatter: function (obj){
+                // CSH
+<!--                console.log(obj.item);-->
+                    if (obj.item == null) {
+                        return [];
+                    }
+                    if (obj.item.key != null) {
+                        if ($.isArray(obj.item.key)) {
+                            var idxStr = "";
+                            for(var i=0,len=obj.item.key.length; i < len; i++){
+                                if (i > 0) {
+                                    idxStr += ", ";
+                                }
+                                idxStr += obj.item.key[i].attribute;
+                            }
+                            return idxStr;
+                        } else {
+                            return obj.item.key.attribute;
+                        }
+                    }
+
+<!--                        if ( $.isArray(obj.item.attributes.attribute)) {-->
+<!--                            return obj.item.attributes.attribute.length;-->
+<!--                        } else {-->
+<!--                            return 1;-->
+<!--                        }-->
+<!--                    return (obj.item.attributes['attribute']||[]).length;-->
+
+                return (obj.item['keys']||[]).join(',');
+              }}
+            ]
+
+            $.pubGrid('#itemAttrGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,valueFilter : searchFilter
+                ,tColItem : itemAttrInfo
+                ,tbodyItem : selItemTypeInfo['ap_itemattr']
+            });
+
+            $.pubGrid('#itemExtendsAttrGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,valueFilter : searchFilter
+                ,tColItem : itemAttrExtendsInfo
+                ,tbodyItem : []
+            });
+
+            $.pubGrid('#itemIndexGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,valueFilter : searchFilter
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,tColItem : itemIndexColInfo
+                ,tbodyItem : selItemTypeInfo['ap_itemindex']
+            });
+
+<!--            $.pubGrid('#itemAttrGrid2',{-->
+<!--                asideOptions :{-->
+<!--                    lineNumber : {enabled : true,width : 30}-->
+<!--                }-->
+<!--                ,setting : {-->
+<!--                    enabled : true-->
+<!--                    ,enableSearch : true-->
+<!--                }-->
+<!--                ,valueFilter : searchFilter-->
+<!--                ,tColItem : itemAttrInfo-->
+<!--                ,tbodyItem : []-->
+<!--            });-->
+
+<!--            $.pubGrid('#itemExtendsAttrGrid2',{-->
+<!--                asideOptions :{-->
+<!--                    lineNumber : {enabled : true,width : 30}-->
+<!--                }-->
+<!--                ,setting : {-->
+<!--                    enabled : true-->
+<!--                    ,enableSearch : true-->
+<!--                }-->
+<!--                ,valueFilter : searchFilter-->
+<!--                ,tColItem : itemAttrExtendsInfo-->
+<!--                ,tbodyItem : []-->
+<!--            });-->
+
+<!--            $.pubGrid('#itemIndexGrid2',{-->
+<!--                asideOptions :{-->
+<!--                    lineNumber : {enabled : true,width : 30}-->
+<!--                }-->
+<!--                ,valueFilter : searchFilter-->
+<!--                ,setting : {-->
+<!--                    enabled : true-->
+<!--                    ,enableSearch : true-->
+<!--                }-->
+<!--                ,tColItem : itemIndexColInfo-->
+<!--                ,tbodyItem : []-->
+<!--            });-->
+        }
+        ,collectionEnumTypeGrid : function (){
+           $.pubGrid('#collectiontypesGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,valueFilter : searchFilter
+                ,tColItem : [
+                  {key :'code',render:'html', label:'code',width:190}
+                  ,{key :'autocreate',render:'html', label:'autocreate',width:50}
+                  ,{key :'elementtype',render:'html', label:'elementtype',width:100}
+                  ,{key :'type',render:'html', label:'type',width:100}
+                  ,{key :'description',render:'html', label:'description',width:100}
+                ]
+                ,tbodyItem : selItemTypeInfo.collectiontypes
+            });
+
+            $.pubGrid('#enumtypesGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,valueFilter : searchFilter
+                ,tColItem : [
+                  {key :'code',render:'html', label:'code',width:190}
+                  ,{key :'valueLen',render:'html', label:'val Len',width:30, formatter: function (obj){
+                    return (obj.item['value']||[]).length;
+                  }}
+                  ,{key :'description',render:'html', label:'description',width:130}
+                  ,{key :'autocreate',render:'html', label:'autocreate',width:50}
+                  ,{key :'generate',render:'html', label:'generate',width:50}
+                  ,{key :'elementtype',render:'html', label:'elementtype',width:50}
+                  ,{key :'type',render:'html', label:'col type',width:50}
+                ]
+                ,tbodyItem : selItemTypeInfo.enumtypes
+                ,rowOptions :{
+                    click : function (itemInfo){
+                        //CSH
+                        var rowItem = itemInfo.item;
+                        var values = rowItem.value||[];
+
+                        var codes = [];
+                        for (var i = 0; i < values.length ; i++) {
+                            codes[i] = values[i].code;
+                        }
+                        $('#enumtypesValue').empty().html(codes.join('<br>'));
+                        return ;
+                    }
+                }
+            });
+        }
+
+        ,relationMaptypeTypeGrid : function(){
+
+          $.pubGrid('#relationsGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,valueFilter : searchFilter
+                ,tColItem : [
+                  {key :'code',render:'html', label:'code',width:190}
+                  ,{key :'autocreate',render:'html', label:'autocreate',width:50}
+                  ,{key :'description',render:'html', label:'description',width:100}
+                  ,{key :'deployment',render:'html', label:'deployment',width:100}
+                  ,{key :'generate',render:'html', label:'generate',width:50}
+                  ,{key :'localized',render:'html', label:'localized',width:50}
+                ]
+                ,tbodyItem : selItemTypeInfo.relations
+                ,rowOptions :{
+                    click : function (itemInfo){
+                        var rowItem = itemInfo.item;
+
+                        var strHtm = [];
+
+                        var sInfo = rowItem.sourceElement
+                            ,tInfo =rowItem.targetElement;
+
+                        var attrKeyArr =["type", "qualifier", "cardinality", "desc", "collectiontype", "metatype", "navigable", "ordered"]
+
+                        var sourceTargetArr = [];
+                        for(var i=0,len=attrKeyArr.length; i < len; i++){
+                            var keyStr = attrKeyArr[i];
+                            sourceTargetArr.push({
+                                'div_id' : keyStr
+                                ,'source' : sInfo[keyStr]||''
+                                ,'target' : tInfo[keyStr]||''
+                            })
+                        }
+
+                        $.pubGrid('#sourceTargetId').setData(sourceTargetArr, 'reDraw');
+
+                    }
+                }
+            });
+
+            $.pubGrid('#sourceTargetId',{
+                valueFilter : searchFilter
+                ,tColItem : [
+                  {key :'div_id',render:'html', label:'구분',width:100, formatter: function (obj){
+                    return '<span style="font-weight:bold;">'+obj.item['div_id']+'</span>';
+                  }}
+                  ,{key :'source',render:'html', label:'source',width:100}
+                  ,{key :'target',render:'html', label:'target',width:100}
+                ]
+                ,tbodyItem : []
+            });
+
+            $.pubGrid('#maptypesGrid',{
+                asideOptions :{
+                    lineNumber : {enabled : true,width : 30}
+                }
+                ,setting : {
+                    enabled : true
+                    ,enableSearch : true
+                }
+                ,valueFilter : searchFilter
+                ,tColItem : [
+                  {key :'code',render:'html', label:'code',width:190}
+                  ,{key :'description',render:'html', label:'description',width:100}
+                  ,{key :'autocreate',render:'html', label:'autocreate',width:50}
+                  ,{key :'argumenttype',render:'html', label:'argumenttype',width:100}
+                  ,{key :'generate',render:'html', label:'generate',width:50}
+                  ,{key :'redeclare',render:'html', label:'redeclare',width:100}
+                  ,{key :'returntype',render:'html', label:'returntype',width:100}
+                ]
+                ,tbodyItem : [selItemTypeInfo.maptypes]
+
+            });
+        }
+    }
+
+      itemTypeView.init();
+}
+</script>

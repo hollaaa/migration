@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>OOOOOOOOO</title>
+	<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+
+
+<style>
+html, body{
+	height:100%;
+	width:100%;
+	margin:0px;
+	padding:0px;
+}
+
+.wh100{
+	height:100%;
+	width:100%;
+	margin:0px;
+	padding:0px;
+}
+
+.tbl td{
+  border:1px solid #eee; 
+  vertical-align:top;
+}
+</style>
+</head>
+
+<body>
+	<table class="wh100 tbl">
+		<colgroup>
+			<col style="width:200px;">
+			<col style="width:*">
+		</colgroup>
+		<tr>
+			<td valign="top">
+				<ul class="left-menu">
+					<li><a href="./itemTypeView.html" target="mainViewArea">item Type 조회</a></li>
+					<li><a href="./dataGen.html" target="mainViewArea">데이터 추출</a></li>
+				</ul>
+			</td>
+			<td valign="top">
+				<iframe src="" name="mainViewArea" class="wh100" frameborder="0"></iframe>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
+
+<script>
+(function (){
+	var firstUrl = $($('.left-menu >li > a')[0]).attr('href');
+	$('[name="mainViewArea"]').attr('src',firstUrl);
+})();
+</script>

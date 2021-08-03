@@ -1,0 +1,34 @@
+plugins {
+	id 'org.springframework.boot' version '2.5.2'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+}
+
+group = 'com.hansum'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.4'
+	implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.0.0'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'commons-io:commons-io:2.10.0'
+	implementation group: 'commons-lang', name: 'commons-lang', version: '2.6'
+	implementation 'org.json:json:20180813'
+	implementation files ('libs/gson-2.8.2.jar')
+	implementation files ('libs/lombok-1.18.20.jar')
+	implementation files ('libs/ojdbc7.jar')
+	annotationProcessor files ('libs/lombok-1.18.20.jar')
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	runtimeOnly 'com.h2database:h2:1.4.197'
+	runtimeOnly 'mysql:mysql-connector-java'
+}
+
+test {
+	useJUnitPlatform()
+}
