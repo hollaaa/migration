@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +27,7 @@ public class HsRestController {
     protected SqlSession sqlSessionH2;
 
     @Autowired @Qualifier("sqlSessionSub")
-    protected SqlSession sqlSessionOrcl;
+    protected SqlSession sqlSessionMysql;
 
     @GetMapping("/readItem")
     public Map<String, Object> readItem() {
@@ -47,13 +45,13 @@ public class HsRestController {
     public String getTableName()
     {
 
-        return sqlSessionOrcl.selectOne("oracle.getTableName");
+        return sqlSessionMysql.selectOne("oracle.getTableName");
     }
 
     @RequestMapping("/getTableInfos")
     public List<Map<String, Object>> getTableInfos()
     {
-        List<Map<String, Object>> map = sqlSessionOrcl.selectList("oracle.getTableInfos");
+        List<Map<String, Object>> map = sqlSessionMysql.selectList("mysql.getTableInfos");
 
         return map;
     }
