@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +33,11 @@ public class HsDbService {
             orgTable.setIdx(++i);
             orgTable.setTabName(String.valueOf(map.get("TAB_NAME")));
             orgTable.setTabComment((String) map.get("TAB_COMMENT"));
-            orgTable.setColId(((BigDecimal)map.get("COL_ID")).intValue());
+            orgTable.setColId(((BigInteger)map.get("COL_ID")).intValue());
             orgTable.setColName(String.valueOf(map.get("COL_NAME")));
             orgTable.setColComent((String) map.get("COL_COMMENT"));
             orgTable.setDataType(String.valueOf(map.get("DATA_TYPE")));
-            orgTable.setColType((String) map.get("COL_TYP"));
+            orgTable.setColType((String) map.get("COL_TYPE"));
             orgTable.setColNullable(String.valueOf(map.get("NULLABLE")));
             orgTable.setColKey(String.valueOf(map.get("COL_KEY")));
             orgTable.setRegDt(new Date());

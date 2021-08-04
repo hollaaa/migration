@@ -25,6 +25,9 @@ import java.util.*;
 public class HsItemReadService {
 
     @Autowired
+    private HsCommonService hsCommonService;
+
+    @Autowired
     private HsMigrateDao hsMigrateDao;
 
     @Autowired
@@ -34,17 +37,19 @@ public class HsItemReadService {
     protected SqlSession sqlSessionH2;
 
 //    private String shilla = "C:\\SDF-SDS\\4.Hybris\\hybris\\bin\\custom\\multisite\\shilladfscore\\resources\\shilladfscore-items.xml";
-    private String hansome = "C:\\handsome\\workspace\\hybris\\bin\\custom\\handsome\\handsomecore\\resources\\handsomecore-items.xml";
-    private String core = "C:\\SDF-SDS\\4.Hybris\\hybris\\bin\\custom\\multisite\\shilladfscore\\resources\\core-items.xml";
+//    private String hansome = "C:\\handsome\\workspace\\hybris\\bin\\custom\\handsome\\handsomecore\\resources\\handsomecore-items.xml";
+//    private String core = "C:\\handsome\\workspace\\hybris\\bin\\platform\\ext\\core\\resources\\core-items.xml";
 
     public Map<String, Object> readItems()
     {
 
-        List<String> fileList = new ArrayList<String>();
+        if (!hsCommonService.isItemFilesExists())
+        {
+            System.out.println("ERROR:Item Files not Exists!!!");
+            return null;
+        }
 
-//        fileList.add(shilla);
-        fileList.add(hansome);
-        fileList.add(core);
+        List<String> fileList = hsCommonService.getItemFileList();
 
         Map<String, Object> retMap = new HashMap<String, Object>();
 
@@ -67,7 +72,7 @@ public class HsItemReadService {
 
     public Map<String, Object> readItem(String filePath)
     {
-        Map<String, Object> returnMap = null;
+        Map<String, Object> returnMap = new HashMap<String, Object>();
 
         try {
 
@@ -158,192 +163,13 @@ public class HsItemReadService {
 //            System.out.println(itemtypeList);
 //            System.out.println(itemtypeList.size());
 
-            if (strJson != null) {
-                Map<String, Object> retMap = new HashMap<>();
-                retMap.put("collectiontypes", collectionTypeList);
-                retMap.put("enumtypes", enumtypeList);
-                retMap.put("relations", relationList);
-                retMap.put("itemtypes", itemtypeList);
-                retMap.put("maptypes", maptypeList);
+            returnMap.put("collectiontypes", collectionTypeList);
+            returnMap.put("enumtypes", enumtypeList);
+            returnMap.put("relations", relationList);
+            returnMap.put("itemtypes", itemtypeList);
+            returnMap.put("maptypes", maptypeList);
+//            return retMap;
 
-//                hsMigrateDao.testConnection();
-
-                return retMap;
-            }
-
-            // 아래 코드는 의미없음
-
-//			System.out.println(strJson);
-
-            // collectiontypes 처리
-//            JSONArray collectiontypeArray = jObject.getJSONObject("items").getJSONObject("collectiontypes").getJSONArray("collectiontype");
-            Map<String, String> collectionTypeMap = new HashMap<String, String>();
-//            List<Map<String, String>> collectionTypeList = new ArrayList<Map<String, String>>();
-
-            for (int i = 0; i < collectiontypeArray.length(); i++) {
-                JSONObject obj = collectiontypeArray.getJSONObject(i);
-                collectionTypeMap = new HashMap<String, String>();
-                collectionTypeMap.put("code", obj.getString("code"));
-                collectionTypeMap.put("elementtype", obj.getString("elementtype"));
-                collectionTypeMap.put("autocreate", String.valueOf(obj.get("autocreate")));
-                collectionTypeMap.put("generate", String.valueOf(obj.get("generate")));
-                collectionTypeMap.put("type", obj.getString("type"));
-
-                collectionTypeList.add(collectionTypeMap);
-            }
-//			System.out.println(collectionTypeList);
-
-            // enumtypes 처리
-//            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray("enumtype");
-            Map<String, String> enumtypeMap;
-//            List<Map<String, String>> enumtypeList = new ArrayList<Map<String, String>>();
-
-            for (int i = 0; i < enumtypeArray.length(); i++) {
-
-                JSONObject obj = enumtypeArray.getJSONObject(i);
-                enumtypeMap = new HashMap<String, String>();
-                enumtypeMap.put("code", obj.getString("code"));
-                enumtypeMap.put("generate", String.valueOf(obj.get("generate")));
-                enumtypeMap.put("autocreate", String.valueOf(obj.get("autocreate")));
-                try {
-                    enumtypeMap.put("dynamic", String.valueOf(obj.getString("dynamic")));
-                } catch (Exception e) {
-                    enumtypeMap.put("dynamic", "");
-                }
-
-                try {
-                    enumtypeMap.put("description", obj.getString("description"));
-                } catch (Exception e) {
-                    enumtypeMap.put("description", "");
-                }
-
-                enumtypeList.add(enumtypeMap);
-            }
-//			System.out.println(enumtypeList);
-
-
-            // relations 처리
-//            JSONArray relationArray = jObject.getJSONObject("items").getJSONObject("relations").getJSONArray("relation");
-            Map<String, String> relationMap;
-//            List<Map<String, String>> relationList = new ArrayList<Map<String, String>>();
-
-            for (int i = 0; i < relationArray.length(); i++) {
-
-                JSONObject obj = relationArray.getJSONObject(i);
-                relationMap = new HashMap<String, String>();
-                relationMap.put("code", obj.getString("code"));
-                relationMap.put("generate", String.valueOf(obj.get("generate")));
-                relationMap.put("autocreate", String.valueOf(obj.get("autocreate")));
-                relationMap.put("localized", String.valueOf(obj.get("localized")));
-                try {
-                    relationMap.put("description", obj.getString("description"));
-                } catch (Exception e) {
-                    relationMap.put("description", "");
-//								System.out.println("description err:"+i);
-                }
-
-                JSONObject sourceObj = obj.getJSONObject("sourceElement");
-                relationMap.put("sourcetype", sourceObj.getString("type"));
-                relationMap.put("sourcequalifier", sourceObj.getString("qualifier"));
-                relationMap.put("sourcecardinality", sourceObj.getString("cardinality"));
-                JSONObject targetObj = obj.getJSONObject("targetElement");
-                relationMap.put("targettype", targetObj.getString("type"));
-                relationMap.put("targetqualifier", targetObj.getString("qualifier"));
-                relationMap.put("targetcardinality", targetObj.getString("cardinality"));
-                relationMap.put("targetcollectiontype", targetObj.getString("collectiontype"));
-
-                relationList.add(relationMap);
-            }
-//            System.out.println(relationList);
-
-
-            // itemtypes 처리
-//            JSONArray itemtypeArray = jObject.getJSONObject("items").getJSONObject("itemtypes").getJSONObject("typegroup").getJSONArray("itemtype");
-            Map<String, Object> itemtypeMap;
-//            List<Map<String, Object>> itemtypeList = new ArrayList<Map<String, Object>>();
-
-            for (int i = 0; i < itemtypeArray.length(); i++) {
-
-                JSONObject obj = itemtypeArray.getJSONObject(i);
-                itemtypeMap = new HashMap<String, Object>();
-                itemtypeMap.put("code", obj.getString("code"));
-                itemtypeMap.put("generate", String.valueOf(obj.get("generate")));
-                itemtypeMap.put("autocreate", String.valueOf(obj.get("autocreate")));
-                try {
-                    itemtypeMap.put("extends", obj.getString("extends"));
-                } catch (Exception e) {
-                    itemtypeMap.put("extends", "");
-                }
-
-                try {
-                    itemtypeMap.put("description", obj.getString("description"));
-                } catch (Exception e) {
-                    itemtypeMap.put("description", "");
-                }
-
-                try {
-                    itemtypeMap.put("description", obj.getString("description"));
-                } catch (Exception e) {
-                    itemtypeMap.put("description", "");
-                }
-
-                // deployment
-                try {
-                    JSONObject deploymentObj = obj.getJSONObject("deployment");
-                    itemtypeMap.put("table", deploymentObj.getString("table"));
-                    itemtypeMap.put("typecode", deploymentObj.getString("typecode"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (ObjectUtils.equals(itemtypeMap.get("table"), null)) {
-                        itemtypeMap.put("table", "");
-                    }
-                    if (ObjectUtils.equals(itemtypeMap.get("typecode"), null)) {
-                        itemtypeMap.put("typecode", "");
-                    }
-//                    System.out.println("deployment err:" + i);
-                }
-
-                try {
-                    JSONArray attributeArray = obj.getJSONObject("attributes").getJSONArray("attribute");
-
-
-                    Map<String, String> attributeMap;
-                    List<Map<String, String>> attributeList = new ArrayList<Map<String, String>>();
-
-                    for (int _i = 0; _i < attributeArray.length(); _i++) {
-                        JSONObject _obj = attributeArray.getJSONObject(_i);
-
-                        attributeMap = new HashMap<String, String>();
-
-                        attributeMap.put("qualifier", _obj.getString("qualifier"));
-                        attributeMap.put("type", _obj.getString("type"));
-                        attributeMap.put("generate", String.valueOf(_obj.get("generate")));
-
-                        try {
-                            attributeMap.put("description", _obj.getString("description"));
-                        } catch (Exception e) {
-                            attributeMap.put("description", "");
-                        }
-                        try {
-                            attributeMap.put("defaultvalue", _obj.getString("defaultvalue"));
-                        } catch (Exception e) {
-                            attributeMap.put("defaultvalue", "");
-                        }
-
-                        attributeList.add(attributeMap);
-
-                    }
-                    itemtypeMap.put("attributes", attributeList);
-
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("attributes err:" + i);
-                }
-
-                itemtypeList.add(itemtypeMap);
-            }
-//						System.out.println(enumtypeList);
 
         } catch (Exception e)
         {
@@ -353,9 +179,15 @@ public class HsItemReadService {
     }
 
 
+    /**
+     * item.xml 을 json으로 변환하여 JsonString 으로 return 한다.
+     * item files 중에서 0번째만 반환함. (테스트 목적이므로)
+     * @return String
+     */
     public String convertXmlToJsonString()
     {
         String strJson = "";
+        String hansome = hsCommonService.getItemFileList().get(0);
 
         try {
             InputStream inputStream = new FileInputStream(hansome);
@@ -374,9 +206,16 @@ public class HsItemReadService {
 
     }
 
+    /**
+     * item.xml 을 json으로 변환하여 JSONObject 로 return 한다.
+     * item files 중에서 0번째만 반환함. (테스트 목적이므로)
+     * @return JSONObject
+     */
     public JSONObject convertXmlToJsonObject()
     {
         JSONObject jObject = null;
+        String strJson = "";
+        String hansome = hsCommonService.getItemFileList().get(0);
 
         try {
             InputStream inputStream = new FileInputStream(hansome);
@@ -462,7 +301,7 @@ public class HsItemReadService {
             hsType.setIdx(++i);
             hsType.setTypeName("enumtype");
             hsType.setCode((String)map.get("code"));
-            hsType.setElementType(String.valueOf(map.get("dynamic")));
+            hsType.setDynamic(String.valueOf(map.get("dynamic")));
             hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
             hsType.setGenerate(String.valueOf(map.get("generate")));
             hsType.setRegDt(new Date());
@@ -485,6 +324,43 @@ public class HsItemReadService {
             }
 
             hsTypeRepository.save(hsType);
+        }
+        return list.size();
+    }
+
+
+    public int saveItemTypes(String fileName)
+    {
+        Map<String, Object> returnMap = readItems();
+
+        Map<String, Object> sitemap = (Map<String, Object>)returnMap.get(fileName);
+
+        List<Map<String, Object>> list =  (List)sitemap.get("itemtypes");
+
+        System.out.println(list);
+
+        HsType hsType = null;
+
+        int i = getMaxHsTypeIdx();
+        for(Map<String, Object> map:list)
+        {
+            hsType = new HsType();
+            hsType.setIdx(++i);
+            hsType.setTypeName("itemtype");
+            hsType.setCode((String)map.get("code"));
+            hsType.setItemExtends(String.valueOf(map.get("extends")));
+            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
+            hsType.setDescription(String.valueOf(map.get("description")));
+            hsType.setRegDt(new Date());
+            if (map.get("deployment") != null)
+            {
+                Map<String, String> deployMap = (Map<String, String>) map.get("deployment");
+
+                hsType.setPTable(deployMap.get("table"));
+                hsType.setTypeCode(deployMap.get("typcode"));
+            }
+            hsTypeRepository.save(hsType);
+
         }
         return list.size();
     }

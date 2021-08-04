@@ -9,7 +9,7 @@
     </select>
 
     <select id="getHsTypeMaxIdx" resultType="Integer">
-        SELECT  NVL(MAX(IDX), 0)
+        SELECT  IFNULL(MAX(IDX), 0)
         FROM    HS_TYPE
     </select>
 

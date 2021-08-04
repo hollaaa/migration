@@ -48,6 +48,10 @@ public class HsType implements Serializable {
     @Column
     private String typeCode;
 
+    @Column
+    private String itemExtends;
+
+
 
     @Column //(name = "insTm", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP )

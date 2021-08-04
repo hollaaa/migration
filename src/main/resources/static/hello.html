@@ -103,6 +103,20 @@
             });
         }
 
+        function saveItemTypes(){
+            $.ajax({
+                type: "POST",
+                url: "/saveItemTypes",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
         function getItemJson(){
             alert("111");
            location.href = "/getItemJsonObject";
@@ -118,6 +132,7 @@
     <input type="button" value="Items Json" onclick="getItemJson()"/>
     <input type="button" value="Collection타입 DB입력" onclick="saveCollectionTypes()"/>
     <input type="button" value="Enum타입 DB입력" onclick="saveEnumTypes()"/>
+    <input type="button" value="Item타입 DB입력" onclick="saveItemTypes()"/>
     <input type="button" value="selectOne" onclick="selectOne()"/>
     <br/>
     <a href="/getCollectionTypesMap" target="_blank">Collection타입</a>

@@ -1,5 +1,6 @@
 package com.hansum.migration.controller;
 
+import com.hansum.migration.service.HsCommonService;
 import com.hansum.migration.service.HsDbService;
 import com.hansum.migration.service.HsItemReadService;
 import org.apache.ibatis.session.SqlSession;
@@ -23,6 +24,9 @@ public class HsRestController {
     @Resource
     private HsDbService hsDbService;
 
+    @Resource
+    private HsCommonService hsCommonService;
+
     @Autowired @Qualifier("sqlSessionMain")
     protected SqlSession sqlSessionH2;
 
@@ -45,7 +49,7 @@ public class HsRestController {
     public String getTableName()
     {
 
-        return sqlSessionMysql.selectOne("oracle.getTableName");
+        return sqlSessionMysql.selectOne("mysql.getTableName");
     }
 
     @RequestMapping("/getTableInfos")
@@ -115,6 +119,12 @@ public class HsRestController {
         return hsItemReadService.saveEnumTypes() + " 건 저장 완료";
     }
 
+    @RequestMapping("/saveItemTypes")
+    public String saveItemTypes()
+    {
+        return hsItemReadService.saveItemTypes("handsomecore-items.xml") + " 건 저장 완료";
+    }
+
     @RequestMapping("/printJson")
     public Map printJson()
     {
@@ -124,6 +134,16 @@ public class HsRestController {
         return map;
     }
 
+    @RequestMapping("/getItemFiles")
+    public List HsCommonService()
+    {
+        return hsCommonService.getItemFileList();
+    }
 
+    @RequestMapping("/isItemFilesExists")
+    public boolean isItemFilesExists()
+    {
+        return hsCommonService.isItemFilesExists();
+    }
 
 }
