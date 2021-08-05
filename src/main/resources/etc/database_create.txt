@@ -1,0 +1,4 @@
+CREATE DATABASE migration DEFAULT CHARACTER SET utf8;
+
+
+GRANT ALL PRIVILEGES ON migration.* TO admin;
