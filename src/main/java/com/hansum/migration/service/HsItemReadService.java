@@ -295,9 +295,9 @@ public class HsItemReadService {
             hsType.setIdx(++i);
             hsType.setTypeName("enumtype");
             hsType.setCode((String)map.get("code"));
-            hsType.setDynamic((String)map.get("dynamic"));
-            hsType.setAutoCreate((String)map.get("autocreate"));
-            hsType.setGenerate((String)map.get("generate"));
+            hsType.setDynamic(String.valueOf(map.get("dynamic")));
+            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
+            hsType.setGenerate(String.valueOf(map.get("generate")));
             hsType.setDescription(getDescriptionTitle(map.get("description")));
             hsType.setDescriptionDetail((String)map.get("description"));
             hsType.setRegDt(new Date());
