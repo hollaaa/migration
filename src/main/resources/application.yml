@@ -5,8 +5,9 @@ spring:
     console:
       enabled: true
   datasource1:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    jdbc-url: jdbc:mysql://localhost:3306/migration?serverTimezone=UTC&characterEncoding=UTF-8
+    #    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    jdbc-url: jdbc:log4jdbc:mysql://localhost:3306/migration?serverTimezone=UTC&characterEncoding=UTF-8
     username: admin
     password: nimda
 # h2
@@ -21,8 +22,10 @@ spring:
 #    jdbc-url: jdbc:oracle:thin:@127.0.0.1:1521:xe
 #    username: SYS as sysdba
 #    password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    jdbc-url: jdbc:mysql://localhost:3306/handsome?serverTimezone=UTC&characterEncoding=UTF-8
+# mysql
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    jdbc-url: jdbc:log4jdbc:mysql://localhost:3306/handsome?serverTimezone=UTC&characterEncoding=UTF-8
     username: admin
     password: nimda
 
@@ -34,7 +37,7 @@ spring:
       ddl-auto: create-drop #update #create-drop
     properties:
       hibernate:
-        show_sql: true
+        show_sql: false
         format_sql: true
 #        globally_quoted_identifiers: true
 #mybatis:
@@ -44,10 +47,27 @@ spring:
 #    aggressiveLazyLoading=false
 #    mapUnderscoreToCamelCase=true
 
-#logging:
-#  level:
-#    org.hibernate.type.descriptor.sql: trace
-
+logging:
+  level:
+    org.springframework : info
+    sql: info
+    jdbc:
+      sqlonly: off
+      sqltiming: off
+      audit: off
+      resultset: off
+      resultsettable: off
+      connection: off
+    com.hansum.migration: debug
+  file:
+    name: C:/hs/log/migrationlog.log
+#    name: /logs/migrationlog.log
+    max-history: 9999999
+    max-size : 500MB
+  pattern:
+    file: "[%d{HH:mm:ss.SSS}][%-5level][%logger.%method:line%line] - %msg%n"
+    rolling-file-name: C:/hs/log/migrationlog_%d{yyyy-MM-dd}.%i"
+#    rolling-file-name: /logs/migrationlog_%d{yyyy-MM-dd}.%i"
 # Mybatis
 #  mybatis:
 #    # mapper.xml 위치 지정

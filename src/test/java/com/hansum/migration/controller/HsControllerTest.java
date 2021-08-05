@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hansum.migration.domain.db.HsUser;
 import com.hansum.migration.domain.db.repository.HsUserRepository;
 import com.hansum.migration.service.HsUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@Slf4j
 public class HsControllerTest {
 
     @Autowired
@@ -41,15 +43,13 @@ public class HsControllerTest {
         hsUser.setAge(22);
         hsUserRepository.save(hsUser);
 
-        System.out.println("----------------------createRepositoryTest------------------");
-        System.out.println(hsUserRepository.findById("test_id").get());
     }
 
     @Test
     public void readRepositoryTest()
     {
-        System.out.println("---reqdRepositoryTest----");
-        System.out.println(hsUserRepository.findById("test_id").get());
+        log.debug("---reqdRepositoryTest----");
+        log.debug(""+hsUserRepository.findById("test_id").get());
     }
 
     @Test
@@ -62,8 +62,8 @@ public class HsControllerTest {
             hsUserRepository.save(updateuser);
         }
 
-        System.out.println("--------------updateRepositoryTest--------------");
-        System.out.println(hsUserRepository.findById("test_id").get());
+        log.debug("--------------updateRepositoryTest--------------");
+        log.debug(""+hsUserRepository.findById("test_id").get());
     }
 
     @Test
@@ -79,8 +79,8 @@ public class HsControllerTest {
             hsUserRepository.delete(deleteUser);
         }
 
-        System.out.println("----- delete test------");
-        System.out.println(hsUserRepository.findById("test_id").get());
+        log.debug("----- delete test------");
+        log.debug(""+hsUserRepository.findById("test_id").get());
 
     }
 

@@ -19,9 +19,13 @@ public class HsController {
     @Resource
     private HsUserService hsUserService;
 
-    @GetMapping("/hello")
+    /**
+     * 데이터추출 페이지
+     * @return
+     */
+    @GetMapping("/migration")
     public String hello(){
-        return "hello.html";
+        return "migration.html";
     }
 
     @ResponseBody
@@ -42,8 +46,6 @@ public class HsController {
         _param.setAge(22);
 
         HsUser hsUser = hsUserService.create(_param);
-        System.out.println(hsUser);
-
         return hsUser;
     }
 
@@ -55,9 +57,6 @@ public class HsController {
         param.setId("test_id");
 
         Optional<HsUser> hsUser = hsUserService.read(param.getId());
-
-        System.out.println(hsUser);
-
         return hsUser;
     }
 

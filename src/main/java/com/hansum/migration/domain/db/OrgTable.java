@@ -28,7 +28,7 @@ public class OrgTable {
     private String colName;
 
     @Column
-    private String colComent;
+    private String colComment;
 
     @Column
     private String dataType;

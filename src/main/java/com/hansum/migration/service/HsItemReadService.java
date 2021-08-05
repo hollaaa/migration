@@ -5,8 +5,9 @@ import com.google.gson.reflect.TypeToken;
 import com.hansum.migration.dao.HsMigrateDao;
 import com.hansum.migration.domain.db.HsType;
 import com.hansum.migration.domain.db.repository.HsTypeRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@Slf4j
 @Service
 public class HsItemReadService {
 
@@ -40,12 +42,16 @@ public class HsItemReadService {
 //    private String hansome = "C:\\handsome\\workspace\\hybris\\bin\\custom\\handsome\\handsomecore\\resources\\handsomecore-items.xml";
 //    private String core = "C:\\handsome\\workspace\\hybris\\bin\\platform\\ext\\core\\resources\\core-items.xml";
 
+    /**
+     * 프로퍼티에 선언된 item.xml 파일들의 모든 정보를 읽어서 Map 으로 반환한다.
+     * @return Map<String, Object>
+     */
     public Map<String, Object> readItems()
     {
 
         if (!hsCommonService.isItemFilesExists())
         {
-            System.out.println("ERROR:Item Files not Exists!!!");
+            log.error("ERROR:Item Files not Exists!!!");
             return null;
         }
 
@@ -61,7 +67,7 @@ public class HsItemReadService {
             File file = new File(filePath);
             fileName = file.getName();
 
-            System.out.println("fileName=" + fileName);
+            log.debug("fileName=" + fileName);
 
             retMap.put(fileName, readItem(filePath)) ;
 
@@ -69,7 +75,11 @@ public class HsItemReadService {
         return retMap;
     }
 
-
+    /**
+     * item.xml 경로를 받아와서 xml에서 컬렉션,Enum,relation,itemtype 정보를 Map으로 반환한다.
+     * @param filePath
+     * @return Map<String, Object>
+     */
     public Map<String, Object> readItem(String filePath)
     {
         Map<String, Object> returnMap = new HashMap<String, Object>();
@@ -93,7 +103,7 @@ public class HsItemReadService {
             collectionTypeList = gson.fromJson(collectiontypeArray.toString(), new TypeToken<List<Map<String, Object>>>() {
             }.getType());
 
-//            System.out.println(collectionTypeList);
+//            log.debug(collectionTypeList);
 
 
             // 2.enumtypes 처리
@@ -103,8 +113,8 @@ public class HsItemReadService {
             }.getType());
 
 
-//            System.out.println(enumtypeList);
-//            System.out.println(enumtypeList.size());
+//            log.debug(enumtypeList);
+//            log.debug(enumtypeList.size());
 
             // 3.relations 처리
             JSONArray relationArray = jObject.getJSONObject("items").getJSONObject("relations").getJSONArray("relation");
@@ -160,8 +170,8 @@ public class HsItemReadService {
             }.getType());
 
 
-//            System.out.println(itemtypeList);
-//            System.out.println(itemtypeList.size());
+//            log.debug(itemtypeList);
+//            log.debug(itemtypeList.size());
 
             returnMap.put("collectiontypes", collectionTypeList);
             returnMap.put("enumtypes", enumtypeList);
@@ -226,43 +236,16 @@ public class HsItemReadService {
             e.printStackTrace();
         }
 
-//        System.out.println(jObject.toString(2));
+//        log.debug(jObject.toString(2));
 
         return jObject;
 
     }
 
-
-    public Object getCollectionTypesMap()
-    {
-        Map<String, Object> returnMap = readItems();
-        return returnMap.get("collectionTypeList");
-    }
-
-
-    public Object getEnumTypesMap()
-    {
-        Map<String, Object> returnMap = readItems();
-
-        return returnMap.get("enumtypeList");
-
-    }
-
-    public Object getRelationTypesMap()
-    {
-
-        Map<String, Object> returnMap = readItems();
-        return returnMap.get("relationList");
-    }
-
-
-    public Object getItemTypesMap()
-    {
-        Map<String, Object> returnMap = readItems();
-        return returnMap.get("itemtypeList");
-
-    }
-
+    /**
+     * Collection type 을 DB에 입력한다.
+     * @return
+     */
     public int saveCollectionTypes()
     {
         Map<String, Object> returnMap = readItems();
@@ -287,23 +270,36 @@ public class HsItemReadService {
         return list.size();
     }
 
-    public int saveEnumTypes()
+    /**
+     * xml 파일을 전달받아 enumType을 DB에 저장한다.
+     * @param fileName
+     * @return  int
+     */
+    public int saveEnumTypes(String fileName)
     {
+        log.info("saveEnumTypes START====================================");
+
         Map<String, Object> returnMap = readItems();
-        List<Map<String, Object>> list =  (List)returnMap.get("enumtypes");
+
+        Map<String, Object> sitemap = (Map<String, Object>)returnMap.get(fileName);
+
+        List<Map<String, Object>> list =  (List)sitemap.get("enumtypes");
 
         HsType hsType = null;
 
         int i = getMaxHsTypeIdx();
         for(Map<String, Object> map:list)
         {
+            log.info("enum:{}", map.get("code"));
             hsType = new HsType();
             hsType.setIdx(++i);
             hsType.setTypeName("enumtype");
             hsType.setCode((String)map.get("code"));
-            hsType.setDynamic(String.valueOf(map.get("dynamic")));
-            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
-            hsType.setGenerate(String.valueOf(map.get("generate")));
+            hsType.setDynamic((String)map.get("dynamic"));
+            hsType.setAutoCreate((String)map.get("autocreate"));
+            hsType.setGenerate((String)map.get("generate"));
+            hsType.setDescription(getDescriptionTitle(map.get("description")));
+            hsType.setDescriptionDetail((String)map.get("description"));
             hsType.setRegDt(new Date());
 
             if (map.get("value") != null)
@@ -313,31 +309,74 @@ public class HsItemReadService {
                     List valList = (List)map.get("value");
                     for(Object obj:valList)
                     {
-                        System.out.println(((Map)obj).get("code"));
+//                        log.debug("value:{}", ((Map)obj).get("code"));
                     }
                 }
                 else
                 {
-                    System.out.println(map.get("value"));
+//                    log.debug("value:{}",map.get("value"));
                 }
 
             }
 
             hsTypeRepository.save(hsType);
         }
+
+        log.info("saveEnumTypes END====================================:{}", list.size());
+
         return list.size();
     }
 
+    /**
+     * Enum 에서 Description 의 첫번째 라인만 추출
+     * @param description
+     * @return String
+     */
+    private String getDescriptionTitle(Object description) {
+        String str = (String)description;
+//        log.debug("str:{}", str);
+        if (StringUtils.isBlank(str))
+        {
+//            log.debug("blank");
+            return "";
+        }
 
+        if (!str.contains(System.lineSeparator()))
+        {
+//            log.debug("no line");
+            return str;
+        }
+
+        String[] result = str.split(System.lineSeparator());
+
+        log.debug("result.length={}", result.length);
+        for(String val : result)
+        {
+            if (!StringUtils.isBlank(val))
+            {
+                return StringUtils.trim(val);
+            }
+        }
+        return "";
+
+    }
+
+
+    /**
+     * xml 파일을 전달받아 itemType을 DB에 저장한다.
+     * @param fileName
+     * @return  int
+     */
     public int saveItemTypes(String fileName)
     {
+        log.info("saveItemTypes START--------------------------");
         Map<String, Object> returnMap = readItems();
 
         Map<String, Object> sitemap = (Map<String, Object>)returnMap.get(fileName);
 
         List<Map<String, Object>> list =  (List)sitemap.get("itemtypes");
 
-        System.out.println(list);
+        log.debug(""+list);
 
         HsType hsType = null;
 
@@ -362,21 +401,18 @@ public class HsItemReadService {
             hsTypeRepository.save(hsType);
 
         }
+        log.info("saveItemTypes END--------------------------");
+
         return list.size();
     }
 
-
+    /**
+     * HsType 의 Max seq 값을 가져옴
+     * @return int
+     */
     public int getMaxHsTypeIdx()
     {
         return sqlSessionH2.selectOne("getHsTypeMaxIdx");
     }
 
-    public void printJson()
-    {
-        Map map = readItems();
-
-        System.out.println(map);
-
-
-    }
 }

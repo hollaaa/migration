@@ -1,6 +1,7 @@
 package com.hansum.migration;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.AutoMappingBehavior;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 @Configuration
+@Slf4j
 @MapperScan(basePackages = {"com.hansum.migration"})
 public class DataSourceConfig {
 
@@ -46,7 +48,7 @@ public class DataSourceConfig {
     @Primary
     public SqlSessionFactory sqlSessionFactoryMain(@Autowired @Qualifier("mysql1DataSource") DataSource dataSource) throws Exception
     {
-        System.out.println("sqlSessionFactoryMain Start");
+        log.debug("sqlSessionFactoryMain Start");
 
         org.apache.ibatis.session.Configuration configuration = this.getMyBatisConfig();
 
@@ -67,7 +69,7 @@ public class DataSourceConfig {
     @Bean
     public SqlSessionFactory sqlSessionFactory(@Autowired @Qualifier("mysql2DataSource") DataSource dataSource) throws Exception
     {
-        System.out.println("sqlSessionFactory Sub Start");
+        log.debug("sqlSessionFactory Sub Start");
 
         org.apache.ibatis.session.Configuration configuration = this.getMyBatisConfig();
 

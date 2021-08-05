@@ -20,6 +20,7 @@ dependencies {
 	implementation 'commons-io:commons-io:2.10.0'
 	implementation group: 'commons-lang', name: 'commons-lang', version: '2.6'
 	implementation 'org.json:json:20180813'
+	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
 	implementation files ('libs/gson-2.8.2.jar')
 	implementation files ('libs/lombok-1.18.20.jar')
 	implementation files ('libs/ojdbc7.jar')

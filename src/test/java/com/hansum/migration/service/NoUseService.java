@@ -50,7 +50,6 @@ public class NoUseService {
             collectionTypeList = gson.fromJson(collectiontypeArray.toString(), new TypeToken<List<Map<String, Object>>>() {
             }.getType());
 
-//            System.out.println(collectionTypeList);
 
 
             // 2.enumtypes 처리
@@ -60,8 +59,6 @@ public class NoUseService {
             }.getType());
 
 
-//            System.out.println(enumtypeList);
-//            System.out.println(enumtypeList.size());
 
             // 3.relations 처리
             JSONArray relationArray = jObject.getJSONObject("items").getJSONObject("relations").getJSONArray("relation");
@@ -116,10 +113,6 @@ public class NoUseService {
             maptypeList = gson.fromJson(maptypeArray.toString(), new TypeToken<List<Map<String, Object>>>() {
             }.getType());
 
-
-//            System.out.println(itemtypeList);
-//            System.out.println(itemtypeList.size());
-
             if (strJson != null) {
                 Map<String, Object> retMap = new HashMap<>();
                 retMap.put("collectiontypes", collectionTypeList);
@@ -134,8 +127,6 @@ public class NoUseService {
             }
 
             // 아래 코드는 의미없음
-
-//			System.out.println(strJson);
 
             // collectiontypes 처리
 //            JSONArray collectiontypeArray = jObject.getJSONObject("items").getJSONObject("collectiontypes").getJSONArray("collectiontype");
@@ -153,7 +144,6 @@ public class NoUseService {
 
                 collectionTypeList.add(collectionTypeMap);
             }
-//			System.out.println(collectionTypeList);
 
             // enumtypes 처리
 //            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray("enumtype");
@@ -181,8 +171,6 @@ public class NoUseService {
 
                 enumtypeList.add(enumtypeMap);
             }
-//			System.out.println(enumtypeList);
-
 
             // relations 처리
 //            JSONArray relationArray = jObject.getJSONObject("items").getJSONObject("relations").getJSONArray("relation");
@@ -201,7 +189,6 @@ public class NoUseService {
                     relationMap.put("description", obj.getString("description"));
                 } catch (Exception e) {
                     relationMap.put("description", "");
-//								System.out.println("description err:"+i);
                 }
 
                 JSONObject sourceObj = obj.getJSONObject("sourceElement");
@@ -216,8 +203,6 @@ public class NoUseService {
 
                 relationList.add(relationMap);
             }
-//            System.out.println(relationList);
-
 
             // itemtypes 처리
 //            JSONArray itemtypeArray = jObject.getJSONObject("items").getJSONObject("itemtypes").getJSONObject("typegroup").getJSONArray("itemtype");
@@ -262,7 +247,6 @@ public class NoUseService {
                     if (ObjectUtils.equals(itemtypeMap.get("typecode"), null)) {
                         itemtypeMap.put("typecode", "");
                     }
-//                    System.out.println("deployment err:" + i);
                 }
 
                 try {
@@ -300,7 +284,6 @@ public class NoUseService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    System.out.println("attributes err:" + i);
                 }
 
                 itemtypeList.add(itemtypeMap);

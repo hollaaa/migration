@@ -1,5 +1,6 @@
 package com.hansum.migration;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -7,6 +8,7 @@ import org.springframework.boot.ApplicationRunner;
 import javax.sql.DataSource;
 import java.sql.Connection;
 
+@Slf4j
 public class TestRunner implements ApplicationRunner {
 
     @Autowired
@@ -16,10 +18,10 @@ public class TestRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
 
         Connection connection = dataSource.getConnection();
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-        System.out.println("url=" + connection.getMetaData().getURL());
-        System.out.println("username=" + connection.getMetaData().getUserName());
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        log.debug("url=" + connection.getMetaData().getURL());
+        log.debug("username=" + connection.getMetaData().getUserName());
+        log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
     }
 }

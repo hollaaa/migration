@@ -1,5 +1,6 @@
 package com.hansum.migration;
 
+import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -19,12 +20,13 @@ import java.sql.Connection;
 
 @MapperScan(basePackageClasses =  MigrationApplication.class)
 @SpringBootApplication
+@Slf4j
 public class MigrationApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MigrationApplication.class, args);
 
-		System.out.println("WEB 시작됨");
+		log.info("WEB STARTED!");
 
 	}
 }

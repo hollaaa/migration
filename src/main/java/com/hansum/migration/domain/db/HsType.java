@@ -11,15 +11,14 @@ import java.util.Date;
 @Setter
 @Entity(name = "hsType")
 public class HsType implements Serializable {
-
     @Id
+    private String code;
+
+    @Column
     private Integer idx;
 
     @Column
     private String typeName;
-
-    @Column
-    private String code;
 
     @Column
     private String elementType;
@@ -36,7 +35,7 @@ public class HsType implements Serializable {
     @Column
     private String dynamic;
 
-    @Column
+    @Column(length = 1000)
     private String description;
 
     @Column
@@ -51,7 +50,8 @@ public class HsType implements Serializable {
     @Column
     private String itemExtends;
 
-
+    @Column(length = 10000)
+    private String descriptionDetail;
 
     @Column //(name = "insTm", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP )

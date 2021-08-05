@@ -1,5 +1,6 @@
 package com.hansum.migration.dao;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -7,6 +8,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 
 @Service
+@Slf4j
 public class HsMigrateDao {
 
     @Autowired
@@ -15,10 +17,10 @@ public class HsMigrateDao {
     public void testConnection() throws Exception
     {
         Connection connection = dataSource.getConnection();
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-        System.out.println("url=" + connection.getMetaData().getURL());
-        System.out.println("username=" + connection.getMetaData().getUserName());
-        System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        log.debug("url=" + connection.getMetaData().getURL());
+        log.debug("username=" + connection.getMetaData().getUserName());
+        log.debug("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
     }
 

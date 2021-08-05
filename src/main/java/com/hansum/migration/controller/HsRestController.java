@@ -3,6 +3,7 @@ package com.hansum.migration.controller;
 import com.hansum.migration.service.HsCommonService;
 import com.hansum.migration.service.HsDbService;
 import com.hansum.migration.service.HsItemReadService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 public class HsRestController {
 
@@ -45,6 +47,7 @@ public class HsRestController {
         return sqlSessionH2.selectOne("h2.getValueFromDatabase");
     }
 
+    @Deprecated
     @RequestMapping("/getTableName")
     public String getTableName()
     {
@@ -52,6 +55,10 @@ public class HsRestController {
         return sqlSessionMysql.selectOne("mysql.getTableName");
     }
 
+    /**
+     * 원본 Mysql 데이터베이스의 모든 테이블 정보 조회
+     * @return List<Map<String, Object>> map
+     */
     @RequestMapping("/getTableInfos")
     public List<Map<String, Object>> getTableInfos()
     {
@@ -85,46 +92,40 @@ public class HsRestController {
         return hsItemReadService.convertXmlToJsonObject();
     }
 
-    @RequestMapping("/getCollectionTypesMap")
-    public Object getCollectionTypesMap()
-    {
-        return hsItemReadService.getCollectionTypesMap();
-    }
-
-
-    @RequestMapping("/getEnumTypesMap")
-    public Object getEnumTypesMap()
-    {
-        return hsItemReadService.getEnumTypesMap();
-    }
-
-
-    @RequestMapping("/getRelationTypesMap")
-    public Object getRelationTypesMap()
-    {
-        return hsItemReadService.getRelationTypesMap();
-    }
-
-
+    /**
+     * Collection Type 을 읽어 DB에 저장한다.
+     * @return
+     */
     @RequestMapping("/saveCollectionTypes")
     public String saveCollectionTypes()
     {
         return hsItemReadService.saveCollectionTypes() + " 건 저장 완료";
     }
 
-
+    /**
+     * xml로부터 enumType을 읽어 DB에 저장한다.
+     * @return
+     */
     @RequestMapping("/saveEnumTypes")
     public String saveEnumTypes()
     {
-        return hsItemReadService.saveEnumTypes() + " 건 저장 완료";
+        return hsItemReadService.saveEnumTypes("handsomecore-items.xml") + " 건 저장 완료";
     }
 
+    /**
+     * xml로부터 ItemType을 읽어 DB에 저장한다.
+     * @return String
+     */
     @RequestMapping("/saveItemTypes")
     public String saveItemTypes()
     {
         return hsItemReadService.saveItemTypes("handsomecore-items.xml") + " 건 저장 완료";
     }
 
+    /**
+     * 프로퍼티에 정의된 모든 item.xml 파일을 읽어 Map 형태의 json 으로 반환한다.
+     * @return map
+     */
     @RequestMapping("/printJson")
     public Map printJson()
     {
@@ -134,12 +135,20 @@ public class HsRestController {
         return map;
     }
 
+    /**
+     * 프로퍼티에 정의된 모든 item.xml 파일 List 를 반환한다.
+     * @return List
+     */
     @RequestMapping("/getItemFiles")
     public List HsCommonService()
     {
         return hsCommonService.getItemFileList();
     }
 
+    /**
+     * 프로퍼티에 정의된 모든 item.xml 파일이 존재하는지 확인한다.
+     * @return boolean
+     */
     @RequestMapping("/isItemFilesExists")
     public boolean isItemFilesExists()
     {
