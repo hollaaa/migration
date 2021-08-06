@@ -50,7 +50,7 @@ spring:
 logging:
   level:
     org.springframework : info
-    sql: info
+    sql: debug
     jdbc:
       sqlonly: off
       sqltiming: off

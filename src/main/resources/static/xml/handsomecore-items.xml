@@ -1444,9 +1444,9 @@
             <![CDATA[
                 모바일 앱 스토어 유형
         
-                AppStore - Apple
-                PlayStore - Google
-                Tstore - SKT
+                AppStore  Apple
+                PlayStore  Google
+                Tstore  SKT
             ]]> 
             </description>
 			<value code="AppStore" />

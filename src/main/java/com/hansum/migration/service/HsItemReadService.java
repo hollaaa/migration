@@ -2,8 +2,12 @@ package com.hansum.migration.service;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.hansum.migration.common.HsConstants;
 import com.hansum.migration.dao.HsMigrateDao;
+import com.hansum.migration.domain.db.HsEnumValue;
+import com.hansum.migration.domain.db.HsEnumValueId;
 import com.hansum.migration.domain.db.HsType;
+import com.hansum.migration.domain.db.repository.HsEnumValuesRepository;
 import com.hansum.migration.domain.db.repository.HsTypeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -34,6 +38,9 @@ public class HsItemReadService {
 
     @Autowired
     private HsTypeRepository hsTypeRepository;
+
+    @Autowired
+    private HsEnumValuesRepository hsEnumValuesRepository;
 
     @Autowired @Qualifier("sqlSessionMain")
     protected SqlSession sqlSessionH2;
@@ -107,7 +114,7 @@ public class HsItemReadService {
 
 
             // 2.enumtypes 처리
-            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray("enumtype");
+            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray(HsConstants.ENUM_TYPE_NAME);
             List<Map<String, String>> enumtypeList = null;
             enumtypeList = gson.fromJson(enumtypeArray.toString(), new TypeToken<List<Map<String, Object>>>() {
             }.getType());
@@ -254,6 +261,7 @@ public class HsItemReadService {
         HsType hsType = null;
 
         int i = getMaxHsTypeIdx();
+        List<HsType> typeList = new ArrayList<>();
         for(Map<String, Object> map:list)
         {
             hsType = new HsType();
@@ -265,9 +273,10 @@ public class HsItemReadService {
             hsType.setPType((String)map.get("type"));
             hsType.setGenerate(String.valueOf(map.get("generate")));
             hsType.setRegDt(new Date());
-            hsTypeRepository.save(hsType);
+            typeList.add(hsType);
         }
-        return list.size();
+        hsTypeRepository.saveAll(typeList);
+        return typeList.size();
     }
 
     /**
@@ -293,7 +302,7 @@ public class HsItemReadService {
             log.info("enum:{}", map.get("code"));
             hsType = new HsType();
             hsType.setIdx(++i);
-            hsType.setTypeName("enumtype");
+            hsType.setTypeName(HsConstants.ENUM_TYPE_NAME);
             hsType.setCode((String)map.get("code"));
             hsType.setDynamic(String.valueOf(map.get("dynamic")));
             hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
@@ -302,29 +311,103 @@ public class HsItemReadService {
             hsType.setDescriptionDetail((String)map.get("description"));
             hsType.setRegDt(new Date());
 
+            hsTypeRepository.save(hsType);
+
             if (map.get("value") != null)
             {
+
                 if (map.get("value") instanceof  List)
                 {
                     List valList = (List)map.get("value");
+
+                    List<HsEnumValue> enumValues = new ArrayList<HsEnumValue>();
                     for(Object obj:valList)
                     {
-//                        log.debug("value:{}", ((Map)obj).get("code"));
+                        HsEnumValueId hsEnumValueId = new HsEnumValueId((String)map.get("code"), (String)((Map)obj).get("code"));
+
+                        HsEnumValue hsEnumValue = new HsEnumValue(hsEnumValueId);
+                        enumValues.add(hsEnumValue);
                     }
+                    hsEnumValuesRepository.saveAll(enumValues);
+
+
                 }
                 else
                 {
-//                    log.debug("value:{}",map.get("value"));
+                    HsEnumValueId hsEnumValueId = new HsEnumValueId();
+                    hsEnumValueId.setCode((String)map.get("code"));
+                    hsEnumValueId.setEnumCode(String.valueOf(((Map)map.get("value")).get("code")));
+
+                    HsEnumValue hsEnumValue = new HsEnumValue(hsEnumValueId);
+
+                    hsEnumValuesRepository.save(hsEnumValue);
                 }
 
             }
 
-            hsTypeRepository.save(hsType);
+
         }
 
         log.info("saveEnumTypes END====================================:{}", list.size());
 
         return list.size();
+    }
+
+
+
+
+    /**
+     * xml 파일을 전달받아 itemType을 DB에 저장한다.
+     * @param fileName
+     * @return  int
+     */
+    public int saveItemTypes(String fileName)
+    {
+        log.info("saveItemTypes START--------------------------");
+        Map<String, Object> returnMap = readItems();
+
+        Map<String, Object> sitemap = (Map<String, Object>)returnMap.get(fileName);
+
+        List<Map<String, Object>> list =  (List)sitemap.get("itemtypes");
+
+        log.debug(""+list);
+
+        HsType hsType = null;
+
+        List<HsType> typeList = new ArrayList<>();
+        int i = getMaxHsTypeIdx();
+        for(Map<String, Object> map:list)
+        {
+            hsType = new HsType();
+            hsType.setIdx(++i);
+            hsType.setTypeName("itemtype");
+            hsType.setCode((String)map.get("code"));
+            hsType.setItemExtends(String.valueOf(map.get("extends")));
+            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
+            hsType.setDescription(String.valueOf(map.get("description")));
+            hsType.setRegDt(new Date());
+            if (map.get("deployment") != null)
+            {
+                Map<String, String> deployMap = (Map<String, String>) map.get("deployment");
+
+                hsType.setPTable(deployMap.get("table"));
+                hsType.setTypeCode(deployMap.get("typcode"));
+            }
+            typeList.add(hsType);
+        }
+        hsTypeRepository.saveAll(typeList);
+        log.info("saveItemTypes END--------------------------");
+
+        return typeList.size();
+    }
+
+    /**
+     * HsType 의 Max seq 값을 가져옴
+     * @return int
+     */
+    public int getMaxHsTypeIdx()
+    {
+        return sqlSessionH2.selectOne("getHsTypeMaxIdx");
     }
 
     /**
@@ -361,58 +444,70 @@ public class HsItemReadService {
 
     }
 
-
     /**
-     * xml 파일을 전달받아 itemType을 DB에 저장한다.
-     * @param fileName
-     * @return  int
+     * item.xml 에서 code value 값을 읽어와서 enum 의 value 값 들을 세팅함
+     * (한섬 item.xml 에 description 기입한 방법에만 적용 가능)
      */
-    public int saveItemTypes(String fileName)
+    public String setHsEnumValuesAll()
     {
-        log.info("saveItemTypes START--------------------------");
-        Map<String, Object> returnMap = readItems();
+        List<HsType> enumList = hsTypeRepository.findByTypeName(HsConstants.ENUM_TYPE_NAME);
 
-        Map<String, Object> sitemap = (Map<String, Object>)returnMap.get(fileName);
+        log.info("enumList.size:{}", enumList.size());
 
-        List<Map<String, Object>> list =  (List)sitemap.get("itemtypes");
-
-        log.debug(""+list);
-
-        HsType hsType = null;
-
-        int i = getMaxHsTypeIdx();
-        for(Map<String, Object> map:list)
+        int cnt = 0;
+        for (HsType hsType : enumList)
         {
-            hsType = new HsType();
-            hsType.setIdx(++i);
-            hsType.setTypeName("itemtype");
-            hsType.setCode((String)map.get("code"));
-            hsType.setItemExtends(String.valueOf(map.get("extends")));
-            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
-            hsType.setDescription(String.valueOf(map.get("description")));
-            hsType.setRegDt(new Date());
-            if (map.get("deployment") != null)
+            List<HsEnumValue> valueList = hsEnumValuesRepository.findByCode(hsType.getCode());
+//            log.info("valueList.size:{}", valueList.size());
+            for (HsEnumValue enumValue : valueList)
             {
-                Map<String, String> deployMap = (Map<String, String>) map.get("deployment");
+                String _value = getValueFromFullDescription(hsType, enumValue);
+                if (!StringUtils.isBlank(_value))
+                {
+                    log.info("_value:{}", _value);
+                    enumValue.setEnumValueXml(_value);
+                    hsEnumValuesRepository.save(enumValue);
 
-                hsType.setPTable(deployMap.get("table"));
-                hsType.setTypeCode(deployMap.get("typcode"));
+                    cnt++;
+                }
             }
-            hsTypeRepository.save(hsType);
-
         }
-        log.info("saveItemTypes END--------------------------");
-
-        return list.size();
+        return cnt + " 건 저장 완료";
     }
 
     /**
-     * HsType 의 Max seq 값을 가져옴
-     * @return int
+     * item.xml 의 enum 상세설명에서 enumCode 의 value 값을 추출한다.
+     * @param hsType
+     * @param enumValue
+     * @return String
      */
-    public int getMaxHsTypeIdx()
+    public String getValueFromFullDescription(HsType hsType, HsEnumValue enumValue)
     {
-        return sqlSessionH2.selectOne("getHsTypeMaxIdx");
+        String enumCode = enumValue.getEnumCode();
+        String desc = (String)hsType.getDescriptionDetail();
+        if (StringUtils.isBlank(desc))
+        {
+            return "";
+        }
+
+        if (!desc.contains(System.lineSeparator()))
+        {
+            return desc;
+        }
+
+        String[] result = desc.split(System.lineSeparator());
+
+        log.debug("result.length={}", result.length);
+        for(String lineStr : result)
+        {
+            if (StringUtils.contains(lineStr, enumCode))
+            {
+                String val = StringUtils.replace(lineStr, enumCode, "");
+                return StringUtils.trim(val);
+            }
+        }
+        return "";
+
     }
 
 }

@@ -2,6 +2,7 @@ package com.hansum.migration.service;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.hansum.migration.common.HsConstants;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.json.JSONArray;
@@ -53,7 +54,7 @@ public class NoUseService {
 
 
             // 2.enumtypes 처리
-            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray("enumtype");
+            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray(HsConstants.ENUM_TYPE_NAME);
             List<Map<String, String>> enumtypeList = null;
             enumtypeList = gson.fromJson(enumtypeArray.toString(), new TypeToken<List<Map<String, Object>>>() {
             }.getType());
@@ -146,7 +147,7 @@ public class NoUseService {
             }
 
             // enumtypes 처리
-//            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray("enumtype");
+//            JSONArray enumtypeArray = jObject.getJSONObject("items").getJSONObject("enumtypes").getJSONArray(HsConstants.);
             Map<String, String> enumtypeMap;
 //            List<Map<String, String>> enumtypeList = new ArrayList<Map<String, String>>();
 

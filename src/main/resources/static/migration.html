@@ -132,6 +132,20 @@
             });
         }
 
+        function setHsEnumValuesAll(){
+            $.ajax({
+                type: "POST",
+                url: "/setHsEnumValuesAll",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
         function getItemJson(){
             alert("111");
            location.href = "/getItemJsonObject";
@@ -149,6 +163,7 @@
     <input type="button" value="Enum타입 DB입력" onclick="saveEnumTypes()"/>
     <input type="button" value="Item타입 DB입력" onclick="saveItemTypes()"/>
     <br/>
+    <input type="button" value="Enum타입 코드 추출저장" onclick="setHsEnumValuesAll()"/>
     <div id="contents"></div>
 </body>
 </html>

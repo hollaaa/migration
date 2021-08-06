@@ -155,4 +155,15 @@ public class HsRestController {
         return hsCommonService.isItemFilesExists();
     }
 
+
+    /**
+     * 프로퍼티에 정의된 모든 item.xml 파일이 존재하는지 확인한다.
+     * @return boolean
+     */
+    @RequestMapping("/setHsEnumValuesAll")
+    public String  setHsEnumValuesAll()
+    {
+        return hsItemReadService.setHsEnumValuesAll();
+    }
+
 }

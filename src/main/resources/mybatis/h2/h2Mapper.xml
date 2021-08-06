@@ -13,4 +13,9 @@
         FROM    HS_TYPE
     </select>
 
+    <select id="getHsEnumValueListByCode" resultType="List">
+        SELECT  IFNULL(MAX(IDX), 0)
+        FROM    HS_TYPE
+    </select>
+
 </mapper>
