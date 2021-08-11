@@ -4,10 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.hansum.migration.common.HsConstants;
 import com.hansum.migration.dao.HsMigrateDao;
-import com.hansum.migration.domain.db.HsEnumValue;
-import com.hansum.migration.domain.db.HsEnumValueId;
-import com.hansum.migration.domain.db.HsType;
+import com.hansum.migration.domain.db.*;
 import com.hansum.migration.domain.db.repository.HsEnumValuesRepository;
+import com.hansum.migration.domain.db.repository.HsItemAttrRepository;
 import com.hansum.migration.domain.db.repository.HsTypeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -38,6 +37,9 @@ public class HsItemReadService {
 
     @Autowired
     private HsTypeRepository hsTypeRepository;
+
+    @Autowired
+    private HsItemAttrRepository hsItemAttrRepository;
 
     @Autowired
     private HsEnumValuesRepository hsEnumValuesRepository;
@@ -375,6 +377,7 @@ public class HsItemReadService {
         HsType hsType = null;
 
         List<HsType> typeList = new ArrayList<>();
+        List<HsItemAttr> attrList = new ArrayList<>();
         int i = getMaxHsTypeIdx();
         for(Map<String, Object> map:list)
         {
@@ -394,6 +397,58 @@ public class HsItemReadService {
                 hsType.setTypeCode(deployMap.get("typcode"));
             }
             typeList.add(hsType);
+
+            // Attribute 추가
+            if (map.get("attributes") != null)
+            {
+
+                if (map.get("attribute") instanceof  List)
+                {
+                    List valList = (List)map.get("attribute");
+
+//                    List<HsEnumValue> enumValues = new ArrayList<HsEnumValue>();
+                    for(Object obj:valList)
+                    {
+                        HsItemAttr attr = new HsItemAttr();
+                        attr.setCode(hsType.getCode());
+                        attr.setQualifier((String)((Map)obj).get("qualifier"));
+                        attr.setDescription((String)((Map)obj).get("description"));
+                        attr.setPType((String)((Map)obj).get("type"));
+                        attr.setPDefaultValue((String)((Map)obj).get("defaultValue"));
+                        attr.setRegDt(new Date());
+
+                        if (((Map)obj).get("modifiers") != null)
+                        {
+                            Map modMap = (Map)((Map)obj).get("modifiers");
+                            attr.setPOptional((String)modMap.get("optional"));
+                            attr.setPUnique((String)modMap.get("unique"));
+                            attr.setPOptional((String)modMap.get("optional"));
+                        }
+
+                        attrList.add(attr);
+                    }
+                }
+                else
+                {
+                    HsItemAttr attr = new HsItemAttr();
+                    attr.setCode(hsType.getCode());
+                    attr.setQualifier((String)map.get("qualifier"));
+                    attr.setDescription((String)map.get("description"));
+                    attr.setPType((String)map.get("type"));
+                    attr.setPDefaultValue((String)map.get("defaultValue"));
+                    attr.setRegDt(new Date());
+
+                    if (map.get("modifiers") != null)
+                    {
+                        Map modMap = (Map)(map.get("modifiers"));
+                        attr.setPOptional((String)modMap.get("optional"));
+                        attr.setPUnique((String)modMap.get("unique"));
+                        attr.setPOptional((String)modMap.get("optional"));
+                    }
+
+                    attrList.add(attr);
+                }
+            }
         }
         hsTypeRepository.saveAll(typeList);
         log.info("saveItemTypes END--------------------------");

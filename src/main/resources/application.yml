@@ -62,11 +62,11 @@ logging:
   file:
     name: C:/hs/log/migrationlog.log
 #    name: /logs/migrationlog.log
-    max-history: 9999999
+    max-history: 1000
     max-size : 500MB
   pattern:
     file: "[%d{HH:mm:ss.SSS}][%-5level][%logger.%method:line%line] - %msg%n"
-    rolling-file-name: C:/hs/log/migrationlog_%d{yyyy-MM-dd}.%i"
+    rolling-file-name: C:/hs/log/back/rollinglog_%d{yyyy-MM-dd}.%i.zip
 #    rolling-file-name: /logs/migrationlog_%d{yyyy-MM-dd}.%i"
 # Mybatis
 #  mybatis:
