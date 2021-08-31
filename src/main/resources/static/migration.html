@@ -77,6 +77,9 @@
         }
 
         function createOrgTables(){
+
+            $('#contents').html("... Original DB 생성 시작");
+
             $.ajax({
                 type: "POST",
                 url: "/createOrgTables",

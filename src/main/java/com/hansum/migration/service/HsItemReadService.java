@@ -3,6 +3,7 @@ package com.hansum.migration.service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.hansum.migration.common.HsConstants;
+import com.hansum.migration.common.HsUtils;
 import com.hansum.migration.dao.HsMigrateDao;
 import com.hansum.migration.domain.db.*;
 import com.hansum.migration.domain.db.repository.HsEnumValuesRepository;
@@ -271,9 +272,9 @@ public class HsItemReadService {
             hsType.setTypeName("CollectionType");
             hsType.setCode((String)map.get("code"));
             hsType.setElementType((String)map.get("elementtype"));
-            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
+            hsType.setAutoCreate(HsUtils.getStringFromObject(map.get("autocreate")));
             hsType.setPType((String)map.get("type"));
-            hsType.setGenerate(String.valueOf(map.get("generate")));
+            hsType.setGenerate(HsUtils.getStringFromObject(map.get("generate")));
             hsType.setRegDt(new Date());
             typeList.add(hsType);
         }
@@ -306,9 +307,9 @@ public class HsItemReadService {
             hsType.setIdx(++i);
             hsType.setTypeName(HsConstants.ENUM_TYPE_NAME);
             hsType.setCode((String)map.get("code"));
-            hsType.setDynamic(String.valueOf(map.get("dynamic")));
-            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
-            hsType.setGenerate(String.valueOf(map.get("generate")));
+            hsType.setDynamic(HsUtils.getStringFromObject(map.get("dynamic")));
+            hsType.setAutoCreate(HsUtils.getStringFromObject(map.get("autocreate")));
+            hsType.setGenerate(HsUtils.getStringFromObject(map.get("generate")));
             hsType.setDescription(getDescriptionTitle(map.get("description")));
             hsType.setDescriptionDetail((String)map.get("description"));
             hsType.setRegDt(new Date());
@@ -338,7 +339,7 @@ public class HsItemReadService {
                 {
                     HsEnumValueId hsEnumValueId = new HsEnumValueId();
                     hsEnumValueId.setCode((String)map.get("code"));
-                    hsEnumValueId.setEnumCode(String.valueOf(((Map)map.get("value")).get("code")));
+                    hsEnumValueId.setEnumCode(HsUtils.getStringFromObject(((Map)map.get("value")).get("code")));
 
                     HsEnumValue hsEnumValue = new HsEnumValue(hsEnumValueId);
 
@@ -385,9 +386,9 @@ public class HsItemReadService {
             hsType.setIdx(++i);
             hsType.setTypeName("itemtype");
             hsType.setCode((String)map.get("code"));
-            hsType.setItemExtends(String.valueOf(map.get("extends")));
-            hsType.setAutoCreate(String.valueOf(map.get("autocreate")));
-            hsType.setDescription(String.valueOf(map.get("description")));
+            hsType.setItemExtends(HsUtils.getStringFromObject(map.get("extends")));
+            hsType.setAutoCreate(HsUtils.getStringFromObject(map.get("autocreate")));
+            hsType.setDescription(HsUtils.getStringFromObject(map.get("description")));
             hsType.setRegDt(new Date());
             if (map.get("deployment") != null)
             {
@@ -398,52 +399,66 @@ public class HsItemReadService {
             }
             typeList.add(hsType);
 
-            // Attribute 추가
-            if (map.get("attributes") != null)
-            {
 
-                if (map.get("attribute") instanceof  List)
+            log.warn("=======================================================");
+
+            // Attribute 추가
+            Object attrObj = map.get("attributes");
+            if (attrObj != null)
+            {
+                HsItemAttr attr;
+
+                Map attrMap = (Map)attrObj;
+
+                log.warn("code:{}", hsType.getCode());
+                if (attrMap.get("attribute") instanceof  List)
                 {
-                    List valList = (List)map.get("attribute");
+
+                    log.warn("att is LIST");
+                    List valList = (List)attrMap.get("attribute");
 
 //                    List<HsEnumValue> enumValues = new ArrayList<HsEnumValue>();
                     for(Object obj:valList)
                     {
-                        HsItemAttr attr = new HsItemAttr();
+                        attr = new HsItemAttr();
+                        log.warn("qualifier:{}",(String)((Map)obj).get("qualifier"));
+
+                        Map _map = (Map)obj;
+
                         attr.setCode(hsType.getCode());
-                        attr.setQualifier((String)((Map)obj).get("qualifier"));
-                        attr.setDescription((String)((Map)obj).get("description"));
-                        attr.setPType((String)((Map)obj).get("type"));
-                        attr.setPDefaultValue((String)((Map)obj).get("defaultValue"));
+                        attr.setQualifier((String)_map.get("qualifier"));
+                        attr.setDescription(HsUtils.getStringFromObject(_map.get("description")));
+                        attr.setPType((String)_map.get("type"));
+                        attr.setPDefaultValue(HsUtils.getStringFromObject(_map.get("defaultvalue")));
                         attr.setRegDt(new Date());
 
-                        if (((Map)obj).get("modifiers") != null)
+                        if (_map.get("modifiers") != null && _map.get("modifiers") instanceof Map)
                         {
-                            Map modMap = (Map)((Map)obj).get("modifiers");
-                            attr.setPOptional((String)modMap.get("optional"));
-                            attr.setPUnique((String)modMap.get("unique"));
-                            attr.setPOptional((String)modMap.get("optional"));
+                            Map modMap = (Map)_map.get("modifiers");
+                            attr.setPUnique(HsUtils.getStringFromObject(modMap.get("unique")));
+                            attr.setPOptional(HsUtils.getStringFromObject(modMap.get("optional")));
                         }
-
                         attrList.add(attr);
                     }
                 }
                 else
                 {
-                    HsItemAttr attr = new HsItemAttr();
+                    attr = new HsItemAttr();
+                    Map _map = (Map)attrMap.get("attribute");
+
+                    log.warn("qualifier:{}", (String)_map.get("qualifier"));
                     attr.setCode(hsType.getCode());
-                    attr.setQualifier((String)map.get("qualifier"));
-                    attr.setDescription((String)map.get("description"));
-                    attr.setPType((String)map.get("type"));
-                    attr.setPDefaultValue((String)map.get("defaultValue"));
+                    attr.setQualifier((String)_map.get("qualifier"));
+                    attr.setDescription((String)_map.get("description"));
+                    attr.setPType((String)_map.get("type"));
+                    attr.setPDefaultValue(HsUtils.getStringFromObject(_map.get("defaultvalue")));
                     attr.setRegDt(new Date());
 
-                    if (map.get("modifiers") != null)
+                    if (_map.get("modifiers") != null && _map.get("modifiers") instanceof Map)
                     {
-                        Map modMap = (Map)(map.get("modifiers"));
-                        attr.setPOptional((String)modMap.get("optional"));
-                        attr.setPUnique((String)modMap.get("unique"));
-                        attr.setPOptional((String)modMap.get("optional"));
+                        Map modMap = (Map)(_map.get("modifiers"));
+                        attr.setPUnique(HsUtils.getStringFromObject(modMap.get("unique")));
+                        attr.setPOptional(HsUtils.getStringFromObject(modMap.get("optional")));
                     }
 
                     attrList.add(attr);
@@ -451,6 +466,7 @@ public class HsItemReadService {
             }
         }
         hsTypeRepository.saveAll(typeList);
+        hsItemAttrRepository.saveAll(attrList);
         log.info("saveItemTypes END--------------------------");
 
         return typeList.size();

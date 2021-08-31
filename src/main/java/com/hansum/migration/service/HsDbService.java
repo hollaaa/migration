@@ -24,6 +24,8 @@ public class HsDbService {
     {
         OrgTable orgTable;
 
+        log.warn("HsDbService.create START!!!");
+
         int i = 0;
         for (Map map : list)
         {
@@ -43,6 +45,9 @@ public class HsDbService {
 
             hsOrgTableRepository.save(orgTable);
         }
+
+        log.warn("HsDbService.create END:{}", i);
+
         return i;
     }
 
