@@ -8,6 +8,7 @@ import com.hansum.migration.dao.HsMigrateDao;
 import com.hansum.migration.domain.db.*;
 import com.hansum.migration.domain.db.repository.HsEnumValuesRepository;
 import com.hansum.migration.domain.db.repository.HsItemAttrRepository;
+import com.hansum.migration.domain.db.repository.HsOrgTableRepository;
 import com.hansum.migration.domain.db.repository.HsTypeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -44,6 +45,9 @@ public class HsItemReadService {
 
     @Autowired
     private HsEnumValuesRepository hsEnumValuesRepository;
+
+    @Autowired
+    private HsOrgTableRepository hsOrgTableRepository;
 
     @Autowired @Qualifier("sqlSessionMain")
     protected SqlSession sqlSessionH2;
@@ -581,4 +585,149 @@ public class HsItemReadService {
 
     }
 
+    /**
+     * 이미 입력한 모델 정보에 typegroup 정보를 매핑한다.
+     */
+    public void mappingTypeGroup() {
+        // 프로퍼티에 정의된 item.xml 파일 목록으로 작업
+        List<String> fileList = hsCommonService.getItemFileList();
+        for (String filePath:fileList)
+        {
+            mappingTypeGroup(filePath);
+        }
+
+    }
+
+
+    /**
+     * 이미 입력한 모델 정보에 typegroup 정보를 매핑한다.
+     * @param filePath
+     */
+    public void mappingTypeGroup(String filePath) {
+
+        try {
+            InputStream inputStream = new FileInputStream(filePath);
+            String xml = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+            int INDENT_FACTOR = 2;
+
+            JSONObject jObject = XML.toJSONObject(xml);
+            String strJson = jObject.toString(INDENT_FACTOR);
+
+            Gson gson = new Gson();
+
+            JSONArray itemtypeArray = new JSONArray();
+            List<Map<String, Object>> itemtypeList = new ArrayList<Map<String, Object>>();
+
+            if (!jObject.getJSONObject("items").getJSONObject("itemtypes").isNull("typegroup")) {
+                if ((jObject.getJSONObject("items").getJSONObject("itemtypes").get("typegroup")) instanceof  JSONArray) {
+                    for( Object _obj: jObject.getJSONObject("items").getJSONObject("itemtypes").getJSONArray("typegroup")) {
+                        JSONObject _jobj = (JSONObject)_obj;
+
+                        String typegroupName = ((JSONObject) _obj).getString("name");
+                        log.warn("typegroup:{}", typegroupName);
+
+                        if (_jobj.get("itemtype") instanceof JSONArray) {
+                            for (Object _obj2 : _jobj.getJSONArray("itemtype")) {
+                                String code = ((JSONObject) _obj2).getString("code");
+                                log.warn("------{}", code);
+
+                                // typegroup 을 itemtype 에 매핑하고 저장
+                                HsType hsType = hsTypeRepository.findByCode(code);
+                                hsType.setTypeGroup(typegroupName);
+                                hsTypeRepository.save(hsType);
+
+                            }
+                        } else {
+
+                            String code = ((JSONObject)_jobj).getJSONObject("itemtype").getString("code");
+                            log.warn("------{}", code);
+
+                            // typegroup 을 itemtype 에 매핑하고 저장
+                            HsType hsType = hsTypeRepository.findByCode(code);
+                            hsType.setTypeGroup(typegroupName);
+                            hsTypeRepository.save(hsType);
+                        }
+
+                    }
+                } else {
+                    JSONObject _obj = jObject.getJSONObject("items").getJSONObject("itemtypes").getJSONObject("typegroup");
+                    String typegroupName =  _obj.getString("name");
+
+                    log.warn("+++++++++++++++++++++++typegroup:{}", typegroupName);
+                    // TODO item.xml 에 단건짜리는 없어서 로직 비워놓음
+                }
+
+            }
+        } catch (Exception e)
+        {
+            log.error("mappingTypeGroup ERR:", e);
+        }
+
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String mappingModelandTable() {
+
+        List<HsType> typeList = hsTypeRepository.findByTypeName(HsConstants.ITEM_TYPE_NAME);
+
+        log.warn("size:{}", typeList.size());
+
+        int i = 0;
+        for (HsType hsType : typeList)
+        {
+            log.warn("{}:{}", ++i, hsType.getCode());
+
+            // 테이블명이 명시된 경우
+            if (StringUtils.isNotEmpty(hsType.getPTable()))
+            {
+                List<OrgTable> tables = hsOrgTableRepository.findByTabName(hsType.getPTable());
+                List<HsItemAttr> attrs = hsItemAttrRepository.findByCode(hsType.getCode());
+
+                hsType.setOrgTableName(hsType.getPTable());
+                hsType.setOrgMapped(true);
+                hsTypeRepository.save(hsType);
+
+                for (HsItemAttr attr : attrs)
+                {
+                    for (OrgTable org : tables)
+                    {
+                        if (HsUtils.isSameAttr(attr.getQualifier(), org.getColName()))
+                        {
+                            log.warn("{} update", attr.getQualifier());
+
+                            attr.setOrgMapped(true);
+                            attr.setOrgColName(org.getColName());
+                            attr.setOrgTableName(hsType.getPTable());
+                            hsItemAttrRepository.save(attr);
+
+                            org.setModelName(attr.getCode());
+                            org.setTabComment(hsType.getDescription());
+                            org.setColComment(attr.getDescription());
+                            org.setDefaultValue(attr.getPDefaultValue());
+                            org.setModelType(attr.getPType());
+                            org.setAttrName(attr.getQualifier());
+                            hsOrgTableRepository.save(org);
+                        }
+
+                    }
+                }
+
+            }
+            else
+            {
+
+            }
+
+            List<HsItemAttr> attrList = hsItemAttrRepository.findByCode(hsType.getCode());
+
+
+
+        }
+
+        return i + " 건 처리완료";
+    }
 }

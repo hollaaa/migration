@@ -78,7 +78,7 @@
 
         function createOrgTables(){
 
-            $('#contents').html("... Original DB 생성 시작");
+            $('#contents').html("... Original DB 테이블 입력 중");
 
             $.ajax({
                 type: "POST",
@@ -149,6 +149,35 @@
             });
         }
 
+        function mappingTypeGroup(){
+            $.ajax({
+                type: "POST",
+                url: "/mappingTypeGroup",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html("완료");
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
+
+        function mappingModelandTable(){
+            $.ajax({
+                type: "POST",
+                url: "/mappingModelandTable",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
         function getItemJson(){
             alert("111");
            location.href = "/getItemJsonObject";
@@ -167,6 +196,8 @@
     <input type="button" value="Item타입 DB입력" onclick="saveItemTypes()"/>
     <br/>
     <input type="button" value="Enum타입 코드 추출저장" onclick="setHsEnumValuesAll()"/>
+    <input type="button" value="Type Group 매핑" onclick="mappingTypeGroup()"/>
+    <input type="button" value="테이블-모델 매핑" onclick="mappingModelandTable()"/>
     <div id="contents"></div>
 </body>
 </html>

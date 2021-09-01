@@ -1,5 +1,6 @@
 package com.hansum.migration.controller;
 
+import com.hansum.migration.common.HsConstants;
 import com.hansum.migration.service.HsCommonService;
 import com.hansum.migration.service.HsDbService;
 import com.hansum.migration.service.HsItemReadService;
@@ -166,4 +167,23 @@ public class HsRestController {
         return hsItemReadService.setHsEnumValuesAll();
     }
 
+
+    /**
+     *
+     */
+    @RequestMapping("/mappingTypeGroup")
+    public void mappingTypeGroup()
+    {
+        hsItemReadService.mappingTypeGroup();
+    }
+
+
+    /**
+     *
+     */
+    @RequestMapping("/mappingModelandTable")
+    public String mappingModelandTable()
+    {
+        return hsItemReadService.mappingModelandTable();
+    }
 }

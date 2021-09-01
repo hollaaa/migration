@@ -33,9 +33,17 @@ public class HsItemAttr {
     @Column
     String pUnique;
 
-
     @Column
     String pInitial;
+
+    @Column(columnDefinition = "boolean default false")
+    Boolean orgMapped;
+
+    @Column
+    String orgTableName;
+
+    @Column
+    String orgColName;
 
 
     @Column //(name = "insTm", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

@@ -45,6 +45,18 @@ public class OrgTable {
     @Column
     private String colKey;
 
+    @Column
+    private String modelName;
+
+    @Column
+    private String attrName;
+
+    @Column
+    private String modelType;
+
+    @Column
+    private String defaultValue;
+
     @Column //(name = "regDt", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP )
     private Date regDt;

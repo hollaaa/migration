@@ -53,6 +53,15 @@ public class HsType implements Serializable {
     @Column(length = 10000)
     private String descriptionDetail;
 
+    @Column
+    private String typeGroup;
+
+    @Column(columnDefinition = "boolean default false")
+    Boolean orgMapped;
+
+    @Column
+    String orgTableName;
+
     @Column //(name = "insTm", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP )
     private Date regDt;

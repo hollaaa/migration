@@ -23,4 +23,18 @@ public class HsUtils {
 
     }
 
+    /**
+     * 원 테이블 col 과 모델 attr 명을 비교하여 같은 놈인지 판단
+     * @param qualifier
+     * @param colName
+     * @return boolean
+     */
+    public static boolean isSameAttr(String qualifier, String colName) {
+
+        if (StringUtils.equals(StringUtils.replace(colName, "p_", ""), qualifier))
+        {
+            return true;
+        }
+        return false;
+    }
 }
