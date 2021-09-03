@@ -7,7 +7,8 @@ spring:
   datasource1:
     #    driver-class-name: com.mysql.cj.jdbc.Driver
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    jdbc-url: jdbc:log4jdbc:mysql://localhost:3306/migration?serverTimezone=UTC&characterEncoding=UTF-8
+    # jdbc-url: jdbc:log4jdbc:mysql://localhost:3306/migration?serverTimezone=UTC&characterEncoding=UTF-8
+    jdbc-url: jdbc:log4jdbc:mysql://localhost:3306/handsome?serverTimezone=UTC&characterEncoding=UTF-8
     username: admin
     password: nimda
 # h2

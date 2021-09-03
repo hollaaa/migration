@@ -57,26 +57,13 @@ public class HsRestController {
     }
 
     /**
-     * 원본 Mysql 데이터베이스의 모든 테이블 정보 조회
-     * @return List<Map<String, Object>> map
-     */
-    @RequestMapping("/getTableInfos")
-    public List<Map<String, Object>> getTableInfos()
-    {
-        List<Map<String, Object>> map = sqlSessionMysql.selectList("mysql.getTableInfos");
-
-        return map;
-    }
-
-    /**
      * 원본 테이블 스키마 입력
      * @return String
      */
     @RequestMapping("/createOrgTables")
     public String createOrgTables()
     {
-        List<Map<String, Object>> map = getTableInfos();
-        int cnt = hsDbService.create(map);
+        int cnt = hsDbService.create();
         return cnt + " 건 입력완료.";
     }
 

@@ -31,7 +31,7 @@ public class HsUtils {
      */
     public static boolean isSameAttr(String qualifier, String colName) {
 
-        if (StringUtils.equals(StringUtils.replace(colName, "p_", ""), qualifier))
+        if (StringUtils.equals(StringUtils.lowerCase(StringUtils.replace(colName, "p_", "")), StringUtils.lowerCase(qualifier)))
         {
             return true;
         }

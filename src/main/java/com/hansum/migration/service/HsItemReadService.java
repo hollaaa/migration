@@ -6,10 +6,7 @@ import com.hansum.migration.common.HsConstants;
 import com.hansum.migration.common.HsUtils;
 import com.hansum.migration.dao.HsMigrateDao;
 import com.hansum.migration.domain.db.*;
-import com.hansum.migration.domain.db.repository.HsEnumValuesRepository;
-import com.hansum.migration.domain.db.repository.HsItemAttrRepository;
-import com.hansum.migration.domain.db.repository.HsOrgTableRepository;
-import com.hansum.migration.domain.db.repository.HsTypeRepository;
+import com.hansum.migration.domain.db.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -20,6 +17,7 @@ import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,6 +46,9 @@ public class HsItemReadService {
 
     @Autowired
     private HsOrgTableRepository hsOrgTableRepository;
+
+    @Autowired
+    private HsOrgTableMasterRepository hsOrgTableMasterRepository;
 
     @Autowired @Qualifier("sqlSessionMain")
     protected SqlSession sqlSessionH2;
@@ -399,7 +400,7 @@ public class HsItemReadService {
                 Map<String, String> deployMap = (Map<String, String>) map.get("deployment");
 
                 hsType.setPTable(deployMap.get("table"));
-                hsType.setTypeCode(deployMap.get("typcode"));
+                hsType.setTypeCode(HsUtils.getStringFromObject(deployMap.get("typecode")));
             }
             typeList.add(hsType);
 
@@ -434,6 +435,7 @@ public class HsItemReadService {
                         attr.setDescription(HsUtils.getStringFromObject(_map.get("description")));
                         attr.setPType((String)_map.get("type"));
                         attr.setPDefaultValue(HsUtils.getStringFromObject(_map.get("defaultvalue")));
+                        attr.setOrgTableName(hsType.getPTable());
                         attr.setRegDt(new Date());
 
                         if (_map.get("modifiers") != null && _map.get("modifiers") instanceof Map)
@@ -672,6 +674,47 @@ public class HsItemReadService {
      */
     public String mappingModelandTable() {
 
+        // 전체 테이블 조회
+        List<OrgTableMaster> allTables = hsOrgTableMasterRepository.findAll();
+
+        List<String> tabNames = new ArrayList<>();
+        for (OrgTableMaster orgTab : allTables)
+        {
+            tabNames.add(orgTab.getTabName());
+        }
+
+        for (OrgTableMaster orgTab : allTables) {
+//            List<OrgTable> cols = hsOrgTableRepository.findByTabName(orgTab.getTabName());
+
+            if (orgTab.getTabName().contains("lp"))
+            {
+                // 다른테이블명 + lp 이면 language 테이블
+                if (tabNames.contains(StringUtils.replace(orgTab.getTabName(), "lp", "")))
+                {
+                    orgTab.setIsHybrisTable("Y");
+                    orgTab.setHybrisTypeGubun("다국어 테이블");
+                    continue;
+                }
+            }
+
+
+
+//            // 1. attr 중에 하이브리스용 컬럼명이 있는지 확인
+//            if(!ObjectUtils.isEmpty(hsOrgTableRepository.findByTabNameAndColName(orgTab.getTabName(), "createdTs")))
+//            {
+//                orgTab.setIsHybrisTable("Y");
+//            }
+
+            // 2. language prop. 인지 확인 (lp)
+
+            // 해당 테이블 명으로 매핑된 모델이 있는지 확인 (같은 테이블의 모델은 여러개 있을 수 있으므로 List)
+            List<HsType> hsTypes = hsTypeRepository.findBypTable(orgTab.getTabName());
+
+
+
+
+        }
+        /*
         List<HsType> typeList = hsTypeRepository.findByTypeName(HsConstants.ITEM_TYPE_NAME);
 
         log.warn("size:{}", typeList.size());
@@ -684,36 +727,106 @@ public class HsItemReadService {
             // 테이블명이 명시된 경우
             if (StringUtils.isNotEmpty(hsType.getPTable()))
             {
-                List<OrgTable> tables = hsOrgTableRepository.findByTabName(hsType.getPTable());
-                List<HsItemAttr> attrs = hsItemAttrRepository.findByCode(hsType.getCode());
+                List<OrgTable> orgTableCols = hsOrgTableRepository.findByTabName(hsType.getPTable());
+                List<HsItemAttr> targetModelAttrs = hsItemAttrRepository.findByCode(hsType.getCode());
+                OrgTableMaster orgTableMaster = hsOrgTableMasterRepository.findByTabName(hsType.getPTable());
 
-                hsType.setOrgTableName(hsType.getPTable());
                 hsType.setOrgMapped(true);
                 hsTypeRepository.save(hsType);
 
-                for (HsItemAttr attr : attrs)
+                String isHybrisTable = "N";
+                // Hybris 모델의 테이블인지 판단
+                for (OrgTable org : orgTableCols)
                 {
-                    for (OrgTable org : tables)
+                    if ("aCLTS".equals(org.getColName()))
                     {
+                        isHybrisTable = "Y";
+                        break;
+                    }
+                }
+                // 모델
+                List<OrgTable> orgColsForUpdate= new ArrayList<OrgTable>();
+
+                // 특정 모델의 attr 과 table 컬럼 looping
+                int attrIdx = 0;
+                for (HsItemAttr attr : targetModelAttrs)
+                {
+
+                    for (OrgTable org : orgTableCols) {
+                        // 첫번째 loop때만 테이블 관련 정보를 update 함
+                        if (attrIdx == 0)
+                        {
+                            org.setModelName(hsType.getCode());
+                            org.setTabComment(hsType.getDescription());
+                            org.setIsHybrisTable(isHybrisTable);
+                            org.setTypeGroup(hsType.getTypeGroup());
+
+                            if ("PK".equals(org.getColName()))
+                            {
+                                org.setColComment("Hybris PK");
+                                org.setAttrName("pk");
+                            }
+
+                            if ("aCLTS".equals(org.getColName()))
+                            {
+                                org.setColComment("Hybris 지정컬럼");
+                            }
+
+                            if ("createdTS".equals(org.getColName()))
+                            {
+                                org.setColComment("생성일시");
+                                org.setAttrName("creationtime");
+                            }
+
+                            if ("hjmpTS".equals(org.getColName()))
+                            {
+                                org.setColComment("Hybris 지정컬럼");
+                            }
+
+                            if ("modifiedTS".equals(org.getColName()))
+                            {
+                                org.setColComment("최종수정일시");
+                                org.setAttrName("modifiedtime");
+
+                            }
+
+                            if ("OwnerPkString".equals(org.getColName()))
+                            {
+                                org.setColComment("Hybris 지정컬럼");
+                            }
+
+                            if ("propTS".equals(org.getColName()))
+                            {
+                                org.setColComment("Hybris 지정컬럼");
+                            }
+
+                            if ("TypePkString".equals(org.getColName()))
+                            {
+                                org.setColComment("Hybris 지정컬럼");
+                            }
+
+                            hsOrgTableRepository.save(org);
+                        }
+
+                        // 같은 컬럼일때 컬럼 정보를 update 함
                         if (HsUtils.isSameAttr(attr.getQualifier(), org.getColName()))
                         {
                             log.warn("{} update", attr.getQualifier());
 
                             attr.setOrgMapped(true);
                             attr.setOrgColName(org.getColName());
-                            attr.setOrgTableName(hsType.getPTable());
                             hsItemAttrRepository.save(attr);
 
-                            org.setModelName(attr.getCode());
-                            org.setTabComment(hsType.getDescription());
+
                             org.setColComment(attr.getDescription());
                             org.setDefaultValue(attr.getPDefaultValue());
-                            org.setModelType(attr.getPType());
                             org.setAttrName(attr.getQualifier());
+                            org.setModelType(attr.getPType());
                             hsOrgTableRepository.save(org);
                         }
 
                     }
+                    attrIdx++;
                 }
 
             }
@@ -727,7 +840,7 @@ public class HsItemReadService {
 
 
         }
-
-        return i + " 건 처리완료";
+        */
+        return allTables.size() + " 건 처리완료";
     }
 }

@@ -10,4 +10,7 @@ public interface HsOrgTableRepository extends JpaRepository<OrgTable, String> {
 
     public List<OrgTable> findByTabName(String tabName);
 
+    public OrgTable findByTabNameAndColName(String tabName, String colName);
+
+
 }

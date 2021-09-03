@@ -41,6 +41,7 @@ public class HsType implements Serializable {
     @Column
     private String localized;
 
+    // 실제 테이블명
     @Column
     private String pTable;
 
@@ -57,10 +58,7 @@ public class HsType implements Serializable {
     private String typeGroup;
 
     @Column(columnDefinition = "boolean default false")
-    Boolean orgMapped;
-
-    @Column
-    String orgTableName;
+    private Boolean orgMapped;
 
     @Column //(name = "insTm", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP )

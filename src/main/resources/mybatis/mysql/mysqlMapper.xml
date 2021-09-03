@@ -18,4 +18,9 @@
         ORDER BY COL.TABLE_NAME, COL.COLUMN_NAME
     </select>
 
+<!--    특정 테이블에 데이터 존재 유무 체크 0:없음 1:있음-->
+    <select id="getDataExists" resultType="Integer" parameterType="HashMap">
+        SELECT EXISTS (SELECT 1 FROM ${tabName} LIMIT 1) AS isDataYn
+    </select>
+
 </mapper>

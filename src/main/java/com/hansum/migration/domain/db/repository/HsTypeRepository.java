@@ -12,4 +12,6 @@ public interface HsTypeRepository extends JpaRepository<HsType, String> {
     public List<HsType> findByTypeName(String typeName);
 
     public HsType findByCode(String code);
+
+    public List<HsType> findBypTable(String pTable);
 }
