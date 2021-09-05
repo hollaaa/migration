@@ -23,4 +23,20 @@
         SELECT EXISTS (SELECT 1 FROM ${tabName} LIMIT 1) AS isDataYn
     </select>
 
+
+    <select id="getTableDeployInfos" resultType="Map" >
+        SELECT 	y.TableName TAB_NAME
+        , MAX(ct.ItemJNDIName) JNDI_NAME
+        , GROUP_CONCAT(ct.InternalCode ORDER BY ct.InternalCode) MODEL_NAMES
+        FROM 	ydeployments Y
+        , composedtypes ct
+        WHERE 	1=1
+        AND 	(y.name = REPLACE(ct.ItemJNDIName, 'de.hybris.platform.persistence.', '')
+        OR y.name = REPLACE(ct.ItemJNDIName, 'de.hybris.platform.persistence.link.', '')
+        OR y.name = REPLACE(ct.ItemJNDIName, 'de.hybris.platform.persistence.type.', '')
+        )
+        AND 	y.tablename IS NOT NULL
+        GROUP BY y.TableName
+    </select>
+
 </mapper>

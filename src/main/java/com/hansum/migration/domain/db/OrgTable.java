@@ -4,69 +4,46 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
-@Entity(name = "orgTable")
-@IdClass(OrgTableId.class)
+@Entity(name = "orgTables")
 public class OrgTable {
 
     @Id
     private String tabName;
 
-    @Id
-    private String colName;
+    @Column
+    private String tabComment;
 
-//    @Column
-//    private String tabComment;
+    @Column (length = 3000)
+    private String modelName;
 
     @Column
-    private Integer idx;
+    private String isHybrisTable;
 
     @Column
-    private Integer colId;
+    private String typeGroup;
+
+    // 데이터 존재 유무
+    @Column
+    private String isDataExists;
 
     @Column
-    private String colComment;
+    private String hybrisTypeGubun;
 
     @Column
-    private String dataType;
+    private String jndiName;
 
     @Column
-    private String dataLen;
+    private String systemName;
 
-    @Column
-    private String colNullable;
 
-    @Column
-    private String colType;
-
-    @Column
-    private String colKey;
-
-//    @Column
-//    private String modelName;
-
-    @Column
-    private String attrName;
-
-    // 하이브리스 모델의 (컬럼)타입
-    @Column
-    private String modelType;
-
-    @Column
-    private String defaultValue;
-
-//    @Column
-//    private String isHybrisTable;
-//
-//    @Column
-//    private String typeGroup;
-
-//    @ManyToOne
-//    @JoinColumn(name="orgTableMaster")
-//    private OrgTableMaster orgTableMaster;
+//    @OneToMany(mappedBy="orgTableMaster", targetEntity=OrgTable.class)
+//    private List<OrgTable> orgTables = new ArrayList<OrgTable>();
 
     @Column //(name = "regDt", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP )

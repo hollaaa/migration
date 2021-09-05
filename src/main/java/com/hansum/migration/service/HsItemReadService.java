@@ -9,6 +9,7 @@ import com.hansum.migration.domain.db.*;
 import com.hansum.migration.domain.db.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.json.JSONArray;
@@ -17,7 +18,6 @@ import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,10 +45,10 @@ public class HsItemReadService {
     private HsEnumValuesRepository hsEnumValuesRepository;
 
     @Autowired
-    private HsOrgTableRepository hsOrgTableRepository;
+    private HsOrgColRepository hsOrgColRepository;
 
     @Autowired
-    private HsOrgTableMasterRepository hsOrgTableMasterRepository;
+    private HsOrgTableRepository hsOrgTableRepository;
 
     @Autowired @Qualifier("sqlSessionMain")
     protected SqlSession sqlSessionH2;
@@ -669,23 +669,47 @@ public class HsItemReadService {
     }
 
     /**
-     *
-     * @return
+     * org 테이블 정보에 모델 정보를 매핑한다.
+     * @return String
      */
     public String mappingModelandTable() {
 
         // 전체 테이블 조회
-        List<OrgTableMaster> allTables = hsOrgTableMasterRepository.findAll();
+        List<OrgTable> allTables = hsOrgTableRepository.findAll();
+        // 전체 type 조회
+        List<HsType> hsTypes = hsTypeRepository.findAll();
+        Map<String, HsType> typesMap = new HashMap<>();
+//        List<String> typeNames = new ArrayList<>();
+        for (HsType hsType : hsTypes)
+        {
+            typesMap.put(hsType.getCode(), hsType);
+//            typeNames.add(hsType.getCode());
+        }
 
+
+        // save 용 전체 테이블
+//        List<OrgTableMaster> saveOrgTableMaster = new ArrayList<>();
+        // save 용 Model
+//        List<HsType> saveHsType = new ArrayList<>();
+        // save 용 Attribute
+        List<HsItemAttr> saveHsItemAttrs = new ArrayList<>();
+        // save 용 orgCols
+        List<OrgCol> saveOrgCols = new ArrayList<>();
+
+        // 테이블명만 리스트로 보관 - lp테이블 판단하기 위함.
         List<String> tabNames = new ArrayList<>();
-        for (OrgTableMaster orgTab : allTables)
+        for (OrgTable orgTab : allTables)
         {
             tabNames.add(orgTab.getTabName());
         }
 
-        for (OrgTableMaster orgTab : allTables) {
-//            List<OrgTable> cols = hsOrgTableRepository.findByTabName(orgTab.getTabName());
+        // 모든 테이블 looping
+        int i_table = 0;
+        int i_total = 0;
+        for (OrgTable orgTab : allTables) {
 
+            log.warn("{}.table name:{}", ++i_table, orgTab.getTabName());
+            // lp 테이블여부를 판단한다.
             if (orgTab.getTabName().contains("lp"))
             {
                 // 다른테이블명 + lp 이면 language 테이블
@@ -693,27 +717,94 @@ public class HsItemReadService {
                 {
                     orgTab.setIsHybrisTable("Y");
                     orgTab.setHybrisTypeGubun("다국어 테이블");
+                    orgTab.setTabComment(StringUtils.replace(orgTab.getTabName(), "lp", "") + " 다국어 테이블");
                     continue;
                 }
             }
 
+            // 해당 테이블의 모델명이 존재할 경우, looping
+            if (StringUtils.isNotBlank(orgTab.getModelName()))
+            {
+                String[] modelNames = StringUtils.split(orgTab.getModelName(), ",");
+                log.warn("modelName:{}", orgTab.getModelName());
+                log.warn("modelNames.length:{}", modelNames.length);
+
+                // 해당 테이블의 모든 col 목록 조회
+                List<OrgCol> orgCols = null;
 
 
-//            // 1. attr 중에 하이브리스용 컬럼명이 있는지 확인
-//            if(!ObjectUtils.isEmpty(hsOrgTableRepository.findByTabNameAndColName(orgTab.getTabName(), "createdTs")))
-//            {
-//                orgTab.setIsHybrisTable("Y");
-//            }
+                // 테이블과 관련된 모든 모델 looping
+                int i_model = 0;
+                for (String code : modelNames)
+                {
 
-            // 2. language prop. 인지 확인 (lp)
+                    ++i_model;
+                    HsType hsType = typesMap.get(code);
+                    log.warn("({}.{}){}.model:{}", i_table, orgTab.getTabName(), i_model, code);
 
-            // 해당 테이블 명으로 매핑된 모델이 있는지 확인 (같은 테이블의 모델은 여러개 있을 수 있으므로 List)
-            List<HsType> hsTypes = hsTypeRepository.findBypTable(orgTab.getTabName());
+                    // item.xml에 모델이 존재하면 (매칭되는 모델이 있으면)
+                    if(hsType != null){
+                        if (orgCols == null)
+                        {
+                            log.warn("{}.findByTabName({})", i_model, orgTab.getTabName());
+                            // 해당 테이블의 모든 col 목록 조회
+                            orgCols = hsOrgColRepository.findByTabName(orgTab.getTabName());
+                            // save 대상에 컬럼정보 포함
+                            saveOrgCols.addAll(orgCols);
+                        }
 
+                        // 테이블 마스터 정보 세팅
+                        orgTab.setTabComment(hsType.getDescription());
+                        orgTab.setTypeGroup(hsType.getTypeGroup());
+                        // Type 정보 세팅
+                        hsType.setOrgMapped("Y");
+                        hsType.setPTable(orgTab.getTabName());
 
+                        // attr 목록 조회
+                        List<HsItemAttr> itemAttrs = hsItemAttrRepository.findByCode(code);
+                        // save 대상 attr 에 추가
+                        saveHsItemAttrs.addAll(itemAttrs);
 
+                        for (HsItemAttr attr : itemAttrs)
+                        {
+                            for (OrgCol orgCol : orgCols)
+                            {
+                                // 같은 컬럼일때 컬럼 정보를 update 함
+                                if (HsUtils.isSameAttr(attr.getQualifier(), orgCol.getColName()))
+                                {
+                                    log.warn("{} update", attr.getQualifier());
 
+                                    attr.setOrgMapped(true);
+                                    attr.setOrgColName(orgCol.getColName());
+//                                    hsItemAttrRepository.save(attr);
+                                    orgCol.setColComment(attr.getDescription());
+                                    orgCol.setDefaultValue(attr.getPDefaultValue());
+                                    orgCol.setAttrName(attr.getQualifier());
+                                    orgCol.setModelType(attr.getPType());
+                                    orgCol.setModelName(code);
+//                                    hsOrgTableRepository.save(orgCol);
+                                }
+
+                            }
+                        }
+
+                    }
+                }
+
+            }
         }
+
+        // 모두 저장한다.
+        log.warn("save HsType : {}", hsTypes.size());
+        hsTypeRepository.saveAll(hsTypes);
+        log.warn("save Attr : {}", saveHsItemAttrs.size());
+        hsItemAttrRepository.saveAll(saveHsItemAttrs);
+        log.warn("save table : {}", allTables.size());
+        hsOrgTableRepository.saveAll(allTables);
+        log.warn("save Cols : {}", saveOrgCols.size());
+        hsOrgColRepository.saveAll(saveOrgCols);
+
+        log.warn("col mapping finished!!");
         /*
         List<HsType> typeList = hsTypeRepository.findByTypeName(HsConstants.ITEM_TYPE_NAME);
 
@@ -841,6 +932,6 @@ public class HsItemReadService {
 
         }
         */
-        return allTables.size() + " 건 처리완료";
+        return allTables.size() + " 개 테이블 처리완료";
     }
 }

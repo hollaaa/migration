@@ -1,10 +1,10 @@
 package com.hansum.migration.service;
 
 import com.hansum.migration.common.HsUtils;
-import com.hansum.migration.domain.db.OrgTableMaster;
-import com.hansum.migration.domain.db.repository.HsOrgTableMasterRepository;
-import com.hansum.migration.domain.db.repository.HsOrgTableRepository;
 import com.hansum.migration.domain.db.OrgTable;
+import com.hansum.migration.domain.db.repository.HsOrgTableRepository;
+import com.hansum.migration.domain.db.repository.HsOrgColRepository;
+import com.hansum.migration.domain.db.OrgCol;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -12,7 +12,6 @@ import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
 import java.math.BigInteger;
@@ -27,10 +26,10 @@ import java.util.*;
 public class HsDbService {
 
     @Resource
-    private HsOrgTableRepository hsOrgTableRepository;
+    private HsOrgColRepository hsOrgColRepository;
 
     @Resource
-    private HsOrgTableMasterRepository hsOrgTableMasterRepository;
+    private HsOrgTableRepository hsOrgTableRepository;
 
     @Autowired
     @Qualifier("sqlSessionMain")
@@ -42,11 +41,26 @@ public class HsDbService {
     public int create()
     {
         List<Map<String, Object>> list = getTableInfos();
-        OrgTable orgTable;
+        OrgCol orgCol;
         log.warn("HsDbService.create START!!!");
 
-        List<OrgTableMaster> masterList = new ArrayList<>();
-        List<OrgTable> orgTableList = new ArrayList<>();
+        // Table 의 deploy 정보 조회
+        List<Map<String, String>> deployList = sqlSessionMysql.selectList("mysql.getTableDeployInfos");
+        Map<String, String> modelMap = new HashMap<>();
+        Map<String, String> jndiMap = new HashMap<>();
+        for(Map<String, String> depMap : deployList)
+        {
+            String _tabName = depMap.get("TAB_NAME");
+            String _jndiName = depMap.get("JNDI_NAME");
+            String _modelNames = depMap.get("MODEL_NAMES");
+
+            modelMap.put(_tabName, _modelNames);
+            jndiMap.put(_tabName, _jndiName);
+        }
+
+
+        List<OrgTable> masterList = new ArrayList<>();
+        List<OrgCol> orgColList = new ArrayList<>();
 
         String lastTabName = "";
         int i = 0;
@@ -59,54 +73,132 @@ public class HsDbService {
                 continue;
             }
 
-            orgTable = new OrgTable();
+            orgCol = new OrgCol();
             String tabName = HsUtils.getStringFromObject(map.get("TAB_NAME"));
 
-            orgTable.setIdx(++i);
-            orgTable.setTabName(tabName);
-            orgTable.setColId(((BigInteger)map.get("COL_ID")).intValue());
-            orgTable.setColName(HsUtils.getStringFromObject(map.get("COL_NAME")));
-            orgTable.setColComment(HsUtils.getStringFromObject(map.get("COL_COMMENT")));
-            orgTable.setDataType(HsUtils.getStringFromObject(map.get("DATA_TYPE")));
-            orgTable.setColType(HsUtils.getStringFromObject(map.get("COL_TYPE")));
-            orgTable.setColNullable(HsUtils.getStringFromObject(map.get("NULLABLE")));
-            orgTable.setColKey(HsUtils.getStringFromObject(map.get("COL_KEY")));
-            orgTable.setRegDt(new Date());
+            orgCol.setIdx(++i);
+            orgCol.setTabName(tabName);
+            orgCol.setColId(((BigInteger)map.get("COL_ID")).intValue());
+            orgCol.setColName(HsUtils.getStringFromObject(map.get("COL_NAME")));
+            orgCol.setColComment(HsUtils.getStringFromObject(map.get("COL_COMMENT")));
+            orgCol.setDataType(HsUtils.getStringFromObject(map.get("DATA_TYPE")));
+            orgCol.setColType(HsUtils.getStringFromObject(map.get("COL_TYPE")));
+            orgCol.setColNullable(HsUtils.getStringFromObject(map.get("NULLABLE")));
+            orgCol.setColKey(HsUtils.getStringFromObject(map.get("COL_KEY")));
+            orgCol.setRegDt(new Date());
 
-            // mater 정보 저장
+            // 하이브리스 기초 정보 저장
+            if ("PK".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("Hybris PK");
+                orgCol.setAttrName("pk");
+            }
+
+            if ("aCLTS".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("Hybris 지정컬럼");
+            }
+
+            if ("createdTS".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("생성일시");
+                orgCol.setAttrName("creationtime");
+            }
+
+            if ("hjmpTS".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("Hybris 지정컬럼");
+            }
+
+            if ("modifiedTS".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("최종수정일시");
+                orgCol.setAttrName("modifiedtime");
+
+            }
+
+            if ("OwnerPkString".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("Hybris 지정컬럼");
+            }
+
+            if ("propTS".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("Hybris 지정컬럼");
+            }
+
+            if ("TypePkString".equals(orgCol.getColName()))
+            {
+                orgCol.setColComment("Hybris 지정컬럼");
+            }
+
+            // master 정보 저장
             if (!StringUtils.equals(lastTabName, tabName))
             {
                 int isDataExists = getDataExists(tabName);
 
-                OrgTableMaster orgTableMaster = new OrgTableMaster();
-                orgTableMaster.setTabName(tabName);
-                orgTableMaster.setTabComment(HsUtils.getStringFromObject(map.get("TAB_COMMENT")));
+                OrgTable orgTable = new OrgTable();
+                orgTable.setTabName(tabName);
+                orgTable.setTabComment(HsUtils.getStringFromObject(map.get("TAB_COMMENT")));
                 if (isDataExists == 1)
                 {
-                    orgTableMaster.setIsDataExists("Y");
+                    orgTable.setIsDataExists("Y");
                 }
                 else
                 {
-                    orgTableMaster.setIsDataExists("N");
+                    orgTable.setIsDataExists("N");
                 }
-                orgTableMaster.setRegDt(new Date());
+                orgTable.setRegDt(new Date());
+
+                // deploy 정보 저장
+                if (modelMap.get(map.get("TAB_NAME")) != null)
+                {
+                    orgTable.setModelName(modelMap.get(map.get("TAB_NAME")));
+                    orgTable.setJndiName(jndiMap.get(map.get("TAB_NAME")));
+                    orgTable.setIsHybrisTable("Y");
+                    if (jndiMap.get(map.get("TAB_NAME")).contains(".link."))
+                    {
+                        orgTable.setHybrisTypeGubun("Relation");
+                    }
+                    else if (jndiMap.get(map.get("TAB_NAME")).contains(".type."))
+                    {
+                        orgTable.setHybrisTypeGubun("Hybris primitive type");
+                    }
+                    else
+                    {
+                        orgTable.setHybrisTypeGubun("Item Type");
+                    }
+
+                    if (StringUtils.isNotBlank(orgTable.getJndiName()))
+                    {
+                        orgTable.setSystemName(getSystemName(orgTable.getJndiName()));
+                    }
+
+                }
+                else
+                {
+                    orgTable.setIsHybrisTable("N");
+                }
+
 
 //                hsOrgTableMasterRepository.save(orgTableMaster);
-                masterList.add(orgTableMaster);
+                masterList.add(orgTable);
             }
 
             // detail 정보 저장
 //            hsOrgTableRepository.save(orgTable);
-            orgTableList.add(orgTable);
+            orgColList.add(orgCol);
         }
 
-        hsOrgTableMasterRepository.saveAll(masterList);
-        hsOrgTableRepository.saveAll(orgTableList);
+        hsOrgTableRepository.saveAll(masterList);
+        hsOrgColRepository.saveAll(orgColList);
 
         log.warn("HsDbService.create END:{}", i);
 
         return i;
     }
+
+
 
     /**
      * 원본 Mysql 데이터베이스의 모든 테이블 정보 조회
@@ -136,7 +228,28 @@ public class HsDbService {
 
     public long getCount()
     {
-        return hsOrgTableRepository.count();
+        return hsOrgColRepository.count();
+    }
+
+    /**
+     * JNDI 명에서 system 명 추출
+     * @param jndiName
+     * @return String
+     */
+    private String getSystemName(String jndiName) {
+        String systemName = "";
+
+        systemName = StringUtils.replace(jndiName, "de.hybris.platform.persistence.", "");
+        systemName = StringUtils.replace(systemName, "link.", "");
+        systemName = StringUtils.replace(systemName, "type.", "");
+
+        if (systemName.contains("_"))
+        {
+            return systemName.split("_")[0];
+        }
+        else {
+            return "core";
+        }
     }
 
 }

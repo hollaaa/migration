@@ -4,16 +4,16 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
-public class OrgTableId implements Serializable {
+public class OrgColId implements Serializable {
 
-    public OrgTableId(){}
+    public OrgColId(){}
 
-    public OrgTableId(String _tabName)
+    public OrgColId(String _tabName)
     {
         this.tabName = _tabName;
     }
 
-    public OrgTableId(String _tabName, String _colName)
+    public OrgColId(String _tabName, String _colName)
     {
         this.tabName = _tabName;
         this.colName = _colName;

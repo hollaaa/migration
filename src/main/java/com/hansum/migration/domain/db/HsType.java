@@ -57,8 +57,8 @@ public class HsType implements Serializable {
     @Column
     private String typeGroup;
 
-    @Column(columnDefinition = "boolean default false")
-    private Boolean orgMapped;
+    @Column(columnDefinition = "varchar(1) default 'N'")
+    private String orgMapped;
 
     @Column //(name = "insTm", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP )
