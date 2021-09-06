@@ -154,6 +154,19 @@ public class HsDbService {
                 if (modelMap.get(map.get("TAB_NAME")) != null)
                 {
                     orgTable.setModelName(modelMap.get(map.get("TAB_NAME")));
+
+                    // 예외 테이블 처리(orders, orderentries) - 왜 예외인지는 모름.
+                    if (StringUtils.equals("orders", orgTable.getTabName()))
+                    {
+                        log.warn("예외처리:{}", orgTable.getTabName());
+                        orgTable.setModelName("AbstractOrder");
+                    }
+                    else if (StringUtils.equals("orderentries", orgTable.getTabName()))
+                    {
+                        log.warn("예외처리:{}", orgTable.getTabName());
+                        orgTable.setModelName("AbstractOrderEntry");
+                    }
+
                     orgTable.setJndiName(jndiMap.get(map.get("TAB_NAME")));
                     orgTable.setIsHybrisTable("Y");
                     if (jndiMap.get(map.get("TAB_NAME")).contains(".link."))
