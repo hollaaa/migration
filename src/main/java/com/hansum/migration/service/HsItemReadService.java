@@ -805,133 +805,121 @@ public class HsItemReadService {
         hsOrgColRepository.saveAll(saveOrgCols);
 
         log.warn("col mapping finished!!");
-        /*
-        List<HsType> typeList = hsTypeRepository.findByTypeName(HsConstants.ITEM_TYPE_NAME);
-
-        log.warn("size:{}", typeList.size());
-
-        int i = 0;
-        for (HsType hsType : typeList)
-        {
-            log.warn("{}:{}", ++i, hsType.getCode());
-
-            // 테이블명이 명시된 경우
-            if (StringUtils.isNotEmpty(hsType.getPTable()))
-            {
-                List<OrgTable> orgTableCols = hsOrgTableRepository.findByTabName(hsType.getPTable());
-                List<HsItemAttr> targetModelAttrs = hsItemAttrRepository.findByCode(hsType.getCode());
-                OrgTableMaster orgTableMaster = hsOrgTableMasterRepository.findByTabName(hsType.getPTable());
-
-                hsType.setOrgMapped(true);
-                hsTypeRepository.save(hsType);
-
-                String isHybrisTable = "N";
-                // Hybris 모델의 테이블인지 판단
-                for (OrgTable org : orgTableCols)
-                {
-                    if ("aCLTS".equals(org.getColName()))
-                    {
-                        isHybrisTable = "Y";
-                        break;
-                    }
-                }
-                // 모델
-                List<OrgTable> orgColsForUpdate= new ArrayList<OrgTable>();
-
-                // 특정 모델의 attr 과 table 컬럼 looping
-                int attrIdx = 0;
-                for (HsItemAttr attr : targetModelAttrs)
-                {
-
-                    for (OrgTable org : orgTableCols) {
-                        // 첫번째 loop때만 테이블 관련 정보를 update 함
-                        if (attrIdx == 0)
-                        {
-                            org.setModelName(hsType.getCode());
-                            org.setTabComment(hsType.getDescription());
-                            org.setIsHybrisTable(isHybrisTable);
-                            org.setTypeGroup(hsType.getTypeGroup());
-
-                            if ("PK".equals(org.getColName()))
-                            {
-                                org.setColComment("Hybris PK");
-                                org.setAttrName("pk");
-                            }
-
-                            if ("aCLTS".equals(org.getColName()))
-                            {
-                                org.setColComment("Hybris 지정컬럼");
-                            }
-
-                            if ("createdTS".equals(org.getColName()))
-                            {
-                                org.setColComment("생성일시");
-                                org.setAttrName("creationtime");
-                            }
-
-                            if ("hjmpTS".equals(org.getColName()))
-                            {
-                                org.setColComment("Hybris 지정컬럼");
-                            }
-
-                            if ("modifiedTS".equals(org.getColName()))
-                            {
-                                org.setColComment("최종수정일시");
-                                org.setAttrName("modifiedtime");
-
-                            }
-
-                            if ("OwnerPkString".equals(org.getColName()))
-                            {
-                                org.setColComment("Hybris 지정컬럼");
-                            }
-
-                            if ("propTS".equals(org.getColName()))
-                            {
-                                org.setColComment("Hybris 지정컬럼");
-                            }
-
-                            if ("TypePkString".equals(org.getColName()))
-                            {
-                                org.setColComment("Hybris 지정컬럼");
-                            }
-
-                            hsOrgTableRepository.save(org);
-                        }
-
-                        // 같은 컬럼일때 컬럼 정보를 update 함
-                        if (HsUtils.isSameAttr(attr.getQualifier(), org.getColName()))
-                        {
-                            log.warn("{} update", attr.getQualifier());
-
-                            attr.setOrgMapped(true);
-                            attr.setOrgColName(org.getColName());
-                            hsItemAttrRepository.save(attr);
-
-
-                            org.setColComment(attr.getDescription());
-                            org.setDefaultValue(attr.getPDefaultValue());
-                            org.setAttrName(attr.getQualifier());
-                            org.setModelType(attr.getPType());
-                            hsOrgTableRepository.save(org);
-                        }
-
-                    }
-                    attrIdx++;
-                }
-
-            }
-            else
-            {
-
-            }
-
-            List<HsItemAttr> attrList = hsItemAttrRepository.findByCode(hsType.getCode());
-
-
-
-        }
-        */
         return allTables.size() + " 개 테이블 처리완료";
+    }
+
+    /**
+     *
+     * @param fileName
+     * @return String
+     */
+    public String saveRelationTypes(String fileName)
+    {
+        log.info("saveItemTypes START--------------------------");
+        Map<String, Object> returnMap = readItems();
+
+        Map<String, Object> sitemap = (Map<String, Object>)returnMap.get(fileName);
+
+        List<Map<String, Object>> list =  (List)sitemap.get("relations");
+
+        log.debug(""+list);
+
+        HsType hsType = null;
+
+        List<HsType> typeList = new ArrayList<>();
+        List<HsItemAttr> attrList = new ArrayList<>();
+        int i = getMaxHsTypeIdx();
+        for(Map<String, Object> map:list)
+        {
+            hsType = new HsType();
+            hsType.setIdx(++i);
+            hsType.setTypeName(HsConstants.RELATION_TYPE_NAME);
+            hsType.setCode((String)map.get("code"));
+            hsType.setLocalized(HsUtils.getStringFromObject(map.get("localized")));
+            hsType.setAutoCreate(HsUtils.getStringFromObject(map.get("autocreate")));
+            hsType.setGenerate(HsUtils.getStringFromObject(map.get("generate")));
+            hsType.setDescription(HsUtils.getStringFromObject(map.get("description")));
+            hsType.setRegDt(new Date());
+            if (map.get("deployment") != null)
+            {
+                Map<String, String> deployMap = (Map<String, String>) map.get("deployment");
+
+                hsType.setPTable(deployMap.get("table"));
+                hsType.setTypeCode(HsUtils.getStringFromObject(deployMap.get("typecode")));
+            }
+            typeList.add(hsType);
+
+
+            log.warn("=======================================================");
+
+            // Attribute 추가
+            Object attrObj = map.get("attributes");
+            if (attrObj != null)
+            {
+                HsItemAttr attr;
+
+                Map attrMap = (Map)attrObj;
+
+                log.warn("code:{}", hsType.getCode());
+                if (attrMap.get("attribute") instanceof  List)
+                {
+
+                    log.warn("att is LIST");
+                    List valList = (List)attrMap.get("attribute");
+
+//                    List<HsEnumValue> enumValues = new ArrayList<HsEnumValue>();
+                    for(Object obj:valList)
+                    {
+                        attr = new HsItemAttr();
+                        log.warn("qualifier:{}",(String)((Map)obj).get("qualifier"));
+
+                        Map _map = (Map)obj;
+
+                        attr.setCode(hsType.getCode());
+                        attr.setQualifier((String)_map.get("qualifier"));
+                        attr.setDescription(HsUtils.getStringFromObject(_map.get("description")));
+                        attr.setPType((String)_map.get("type"));
+                        attr.setPDefaultValue(HsUtils.getStringFromObject(_map.get("defaultvalue")));
+                        attr.setOrgTableName(hsType.getPTable());
+                        attr.setRegDt(new Date());
+
+                        if (_map.get("modifiers") != null && _map.get("modifiers") instanceof Map)
+                        {
+                            Map modMap = (Map)_map.get("modifiers");
+                            attr.setPUnique(HsUtils.getStringFromObject(modMap.get("unique")));
+                            attr.setPOptional(HsUtils.getStringFromObject(modMap.get("optional")));
+                        }
+                        attrList.add(attr);
+                    }
+                }
+                else
+                {
+                    attr = new HsItemAttr();
+                    Map _map = (Map)attrMap.get("attribute");
+
+                    log.warn("qualifier:{}", (String)_map.get("qualifier"));
+                    attr.setCode(hsType.getCode());
+                    attr.setQualifier((String)_map.get("qualifier"));
+                    attr.setDescription((String)_map.get("description"));
+                    attr.setPType((String)_map.get("type"));
+                    attr.setPDefaultValue(HsUtils.getStringFromObject(_map.get("defaultvalue")));
+                    attr.setRegDt(new Date());
+
+                    if (_map.get("modifiers") != null && _map.get("modifiers") instanceof Map)
+                    {
+                        Map modMap = (Map)(_map.get("modifiers"));
+                        attr.setPUnique(HsUtils.getStringFromObject(modMap.get("unique")));
+                        attr.setPOptional(HsUtils.getStringFromObject(modMap.get("optional")));
+                    }
+
+                    attrList.add(attr);
+                }
+            }
+        }
+        hsTypeRepository.saveAll(typeList);
+        hsItemAttrRepository.saveAll(attrList);
+        log.info("saveItemTypes END--------------------------");
+
+        return typeList.size() + " 건 저장 완료.(Relation Type)";
     }
 }

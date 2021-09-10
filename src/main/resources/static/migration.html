@@ -141,6 +141,22 @@
             });
         }
 
+        function saveRelationTypes(){
+
+            $('#contents').html("... Relation Type 테이블 입력 중");
+            $.ajax({
+                type: "POST",
+                url: "/saveRelationTypes",
+                success: (data) => {
+                    console.log(data);
+                    $('#contents').html(JSON.stringify(data));
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("ERROR:" + textStatus + " : " + errorThrown);
+                }
+            });
+        }
+
         function setHsEnumValuesAll(){
             $('#contents').html("... Enum Type 매핑 중");
 
@@ -190,7 +206,7 @@
         }
 
         function getItemJson(){
-            alert("111");
+           alert("111");
            location.href = "/getItemJsonObject";
 
         }
@@ -205,6 +221,7 @@
     <input type="button" value="Collection타입 DB입력" onclick="saveCollectionTypes()"/>
     <input type="button" value="Enum타입 DB입력" onclick="saveEnumTypes()"/>
     <input type="button" value="Item타입 DB입력" onclick="saveItemTypes()"/>
+    <input type="button" value="Relation타입 DB입력" onclick="saveRelationTypes()"/>
     <br/>
     <input type="button" value="Enum타입 코드 추출저장" onclick="setHsEnumValuesAll()"/>
     <input type="button" value="Type Group 매핑" onclick="mappingTypeGroup()"/>

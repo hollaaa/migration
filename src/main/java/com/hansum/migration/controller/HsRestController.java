@@ -110,6 +110,12 @@ public class HsRestController {
         return hsItemReadService.saveItemTypes("handsomecore-items.xml") + " 건 저장 완료";
     }
 
+    @RequestMapping("/saveRelationTypes")
+    public String saveRelationTypes()
+    {
+        return hsItemReadService.saveRelationTypes("handsomecore-items.xml") + " 건 저장 완료";
+    }
+
     /**
      * 프로퍼티에 정의된 모든 item.xml 파일을 읽어 Map 형태의 json 으로 반환한다.
      * @return map
