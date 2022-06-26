@@ -39,4 +39,99 @@
         GROUP BY y.TableName
     </select>
 
+
+
+
+    <!-- 그리드 관련 -->
+    <!--설정 정보 조회-->
+    <select id="getGridConfigs" resultType="Map" parameterType="HashMap">
+        SELECT
+                saveName,
+                colId,
+                colWidth,
+                colHidden,
+                colSeq,
+                colAlign,
+                colSort,
+                colName
+        FROM
+                aagrid
+        WHERE   saveName = #{saveName}
+        ORDER BY colSeq
+    </select>
+
+    <select id="getGridSort" resultType="Map" parameterType="String">
+        SELECT
+            saveName,
+            colId,
+            sortSeq,
+            sortDir
+        FROM
+            aagridsort
+        WHERE   saveName = #{saveName}
+        ORDER BY sortSeq
+    </select>
+
+    <!--설정명 조회 -->
+    <select id="getSaveNames" resultType="String" >
+        SELECT
+                DISTINCT  saveName
+        FROM
+                aagrid
+
+    </select>
+
+    <!-- 설정 저장-->
+    <insert id="saveGridConfig" parameterType="hashmap">
+        INSERT INTO aagrid (
+            saveName,
+            colId,
+            colWidth,
+            colHidden,
+            colSeq,
+            colAlign,
+            colSort,
+            colName
+        )
+        VALUES
+        (
+            #{saveName, jdbcType=VARCHAR},
+            #{colId, jdbcType=VARCHAR},
+            #{colWidth, jdbcType=INTEGER},
+            #{colHidden, jdbcType=VARCHAR},
+            #{colSeq, jdbcType=INTEGER},
+            #{colAlign, jdbcType=VARCHAR},
+            #{colSort, jdbcType=VARCHAR},
+            #{colName, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="saveGridSort" parameterType="hashmap">
+        INSERT INTO aagridSort (
+        saveName,
+        sortSeq,
+        colId,
+        sortDir
+        )
+        VALUES
+        (
+        #{saveName, jdbcType=VARCHAR},
+        #{sortSeq, jdbcType=INTEGER},
+        #{colId, jdbcType=VARCHAR},
+        #{sortDir, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <!-- 설정 삭제-->
+    <delete id="deleteGridConfig" parameterType="String">
+        DELETE from aagrid
+        WHERE   saveName = #{saveName}
+    </delete>
+
+    <delete id="deleteGridSort" parameterType="String">
+        DELETE from aagridSort
+        WHERE   saveName = #{saveName}
+    </delete>
+
+
 </mapper>

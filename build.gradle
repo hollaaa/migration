@@ -24,6 +24,9 @@ dependencies {
 	implementation files ('libs/gson-2.8.2.jar')
 	implementation files ('libs/lombok-1.18.20.jar')
 	implementation files ('libs/ojdbc7.jar')
+	implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+	implementation 'javax.servlet:jstl'
+	implementation 'net.sf.json-lib:json-lib:2.4:jdk15'
 	annotationProcessor files ('libs/lombok-1.18.20.jar')
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	runtimeOnly 'com.h2database:h2:1.4.197'
